@@ -5,6 +5,21 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
+## [1.1.0](https://github.com/HhCompile/docs-blog/compare/docs-blog-v1.0.0...docs-blog-v1.1.0) (2026-06-21)
+
+
+### Features
+
+* 发布 my-blog 1.0.0 稳定版本 ([baafc67](https://github.com/HhCompile/docs-blog/commit/baafc676aecab200e75dc2969b9be339f292bf73))
+* 增加 docs/examples 目录到 .gitignore ([1ea7984](https://github.com/HhCompile/docs-blog/commit/1ea7984c1d1ed3f653770dfeae77945d30fdcdc1))
+* 添加示例 feat commit 验证 release-please PR 生成 ([5e6b2f1](https://github.com/HhCompile/docs-blog/commit/5e6b2f125cc3e10e1cf2a433283fc21f854c8e09))
+* 验证 release-please 权限修复后能开 PR ([9fb5ba5](https://github.com/HhCompile/docs-blog/commit/9fb5ba565b0ec8fbe0ce650ecd1dd7acc6473ea1))
+
+
+### Bug Fixes
+
+* **release-please:** 用 packages 包裹单包配置修复 path-split 0 问题 ([218d2f5](https://github.com/HhCompile/docs-blog/commit/218d2f5d04a358dda2e89ce29ef5de31f97990f3))
+
 ## [Unreleased]
 
 ### Planned
