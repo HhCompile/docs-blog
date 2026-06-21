@@ -45,5 +45,8 @@
     "unist-util-visit": "^5.0.0",
     "zod": "^4.3.6"
   },
-  "packageManager": "pnpm@9.15.0"
+  "packageManager": "pnpm@9.15.0",
+  "devDependencies": {
+    "release-please": "^17.9.0"
+  }
 }

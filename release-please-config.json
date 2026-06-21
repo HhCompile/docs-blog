@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "node",
+  "package-name": "docs-blog",
+  "changelog-path": "CHANGELOG.md",
+  "pull-request-header": ":robot: release-please",
+  "pull-request-footer": "由 [release-please](https://github.com/googleapis/release-please) 自动管理。",
+  "versioning": "default",
+  "extra-files": [
+    "README.md"
+  ]
+}
