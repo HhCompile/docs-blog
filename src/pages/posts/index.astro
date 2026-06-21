@@ -1,0 +1,40 @@
+---
+export const prerender = true
+import { getCollection } from 'astro:content'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import PostListFilter from '../../components/PostListFilter'
+import { listTags } from '../../data/tag-helpers'
+
+// 序列化文章数据传给 React 岛
+// 设计权衡：当前文章数 < 50 时，前端全量过滤体验优于 SSR 分页
+// 超过 50 篇时建议改为 /posts/[page].astro 路由分页
+const posts = (await getCollection('posts', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .map((post) => ({
+    slug: post.id,
+    title: post.data.title,
+    description: post.data.description ?? '',
+    date: post.data.date.toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }),
+    tags: post.data.tags ?? [],
+  }))
+
+const allTags = listTags()
+---
+
+<BaseLayout
+  title="所有文章"
+  description="浏览所有文章，支持按标签筛选和关键词搜索"
+>
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-3xl font-bold mb-2">所有文章</h1>
+    <p class="text-gray-600 dark:text-gray-400 mb-8">
+      共 {posts.length} 篇 · 支持标签筛选与关键词搜索
+    </p>
+
+    <PostListFilter client:load posts={posts} allTags={allTags} />
+  </section>
+</BaseLayout>

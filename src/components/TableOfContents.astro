@@ -1,0 +1,124 @@
+---
+/**
+ * 目录组件（吸顶侧边栏）
+ * - 接收 Astro render 后的 headings 数组
+ * - 客户端滚动监听：高亮当前可见 heading
+ * - 平滑滚动 + URL hash 同步
+ */
+import Icon from './Icon.astro'
+
+export interface Heading {
+  depth: number
+  slug: string
+  text: string
+}
+
+export interface Props {
+  headings: Heading[]
+}
+
+const { headings } = Astro.props
+// 仅展示 h2 / h3
+const items = headings.filter((h) => h.depth === 2 || h.depth === 3)
+---
+
+{items.length > 0 && (
+  <nav
+    id="toc"
+    class="hidden xl:block sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-4"
+    aria-label="文章目录"
+  >
+    <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+      <Icon name="format-list-bulleted" size={14} class="text-brand-600" />
+      文章目录
+    </h2>
+    <ul class="space-y-1 text-sm border-l border-gray-200 dark:border-gray-800">
+      {items.map((h) => (
+        <li>
+          <a
+            href={`#${h.slug}`}
+            data-toc-link={h.slug}
+            class:list={[
+              'toc-link block pl-3 py-1 -ml-px border-l-2 border-transparent text-gray-600 dark:text-gray-400 hover:text-brand-600 hover:border-brand-500 transition-colors',
+              h.depth === 3 && 'pl-6 text-xs',
+            ]}
+          >
+            {h.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<script>
+  function initToc() {
+    const toc = document.getElementById('toc')
+    if (!toc) return
+
+    const links = toc.querySelectorAll<HTMLAnchorElement>('a[data-toc-link]')
+    const map = new Map<string, HTMLAnchorElement>()
+    links.forEach((l) => map.set(l.dataset.tocLink!, l))
+
+    // 找到页面里所有匹配的 heading
+    const headings = Array.from(map.keys())
+      .map((slug) => document.getElementById(slug))
+      .filter((el): el is HTMLElement => Boolean(el))
+
+    if (headings.length === 0) return
+
+    function activate(slug: string | null) {
+      links.forEach((l) => {
+        l.classList.remove('text-brand-600', 'border-brand-500', 'font-medium')
+        l.classList.add('border-transparent')
+      })
+      if (slug && map.has(slug)) {
+        const link = map.get(slug)!
+        link.classList.add('text-brand-600', 'border-brand-500', 'font-medium')
+        link.classList.remove('border-transparent')
+      }
+    }
+
+    // 用 IntersectionObserver 高亮当前 heading
+    let currentSlug: string | null = null
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            currentSlug = entry.target.id
+            activate(currentSlug)
+          }
+        })
+      },
+      {
+        rootMargin: '-80px 0px -70% 0px',
+        threshold: 0,
+      }
+    )
+    headings.forEach((h) => observer.observe(h))
+
+    // 点击平滑滚动
+    links.forEach((link) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault()
+        const slug = link.dataset.tocLink!
+        const target = document.getElementById(slug)
+        if (!target) return
+        const top = target.getBoundingClientRect().top + window.scrollY - 80
+        window.scrollTo({ top, behavior: 'smooth' })
+        history.pushState(null, '', `#${slug}`)
+        activate(slug)
+      })
+    })
+
+    // 初始 hash
+    if (location.hash) activate(location.hash.slice(1))
+  }
+
+  // 等 headings 渲染
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initToc)
+  } else {
+    initToc()
+  }
+</script>

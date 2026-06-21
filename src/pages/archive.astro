@@ -1,0 +1,96 @@
+---
+export const prerender = true
+import { getCollection } from 'astro:content'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Icon from '../components/Icon.astro'
+import { listTags } from '../data/tag-helpers'
+import { calculateReadingTime } from '../lib/reading-time'
+
+const posts = (await getCollection('posts', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+
+// 按年月分组
+const groups = new Map<string, typeof posts>()
+for (const post of posts) {
+  const key = `${post.data.date.getFullYear()}-${String(post.data.date.getMonth() + 1).padStart(2, '0')}`
+  if (!groups.has(key)) groups.set(key, [] as any)
+  groups.get(key)!.push(post)
+}
+
+const sortedKeys = [...groups.keys()].sort((a, b) => b.localeCompare(a))
+
+// 统计
+const totalWords = posts.reduce((sum, p) => sum + (calculateReadingTime(p.body ?? '').chars), 0)
+const totalTags = listTags().filter((t) => posts.some((p) => p.data.tags?.includes(t.id))).length
+---
+
+<BaseLayout
+  title="归档"
+  description="按年月归档所有文章"
+>
+  <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-3xl font-bold mb-2">归档</h1>
+    <p class="text-gray-600 dark:text-gray-400 mb-2">
+      共 <strong class="text-brand-600">{posts.length}</strong> 篇 ·
+      <strong class="text-brand-600">{totalWords.toLocaleString()}</strong> 字 ·
+      <strong class="text-brand-600">{totalTags}</strong> 个标签
+    </p>
+    <p class="text-sm text-gray-500 mb-8">
+      按年/月倒序排列
+    </p>
+
+    <div class="space-y-10">
+      {sortedKeys.map((key) => {
+        const [year, month] = key.split('-')
+        const monthPosts = groups.get(key)!
+        return (
+          <section>
+            <h2 class="text-xl font-bold mb-3 flex items-center gap-2 sticky top-16 bg-white dark:bg-gray-950 py-2 z-10">
+              <Icon name="calendar" size={18} class="text-brand-600" />
+              {year} 年 {parseInt(month, 10)} 月
+              <span class="text-xs text-gray-500 font-normal">
+                ({monthPosts.length})
+              </span>
+            </h2>
+            <ul class="space-y-2">
+              {monthPosts.map((post) => {
+                const day = String(post.data.date.getDate()).padStart(2, '0')
+                return (
+                  <li>
+                    <a
+                      href={`/posts/${post.id}`}
+                      class="group flex items-start gap-3 -mx-2 px-2 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                    >
+                      <span class="text-xs text-gray-500 font-mono mt-0.5 flex-shrink-0 w-12">
+                        {month}-{day}
+                      </span>
+                      <div class="flex-1 min-w-0">
+                        <h3 class="text-sm font-medium group-hover:text-brand-600 transition-colors line-clamp-1">
+                          {post.data.title}
+                        </h3>
+                        {post.data.description && (
+                          <p class="text-xs text-gray-500 line-clamp-1 mt-0.5">
+                            {post.data.description}
+                          </p>
+                        )}
+                      </div>
+                      {post.data.tags && post.data.tags.length > 0 && (
+                        <span class="text-[10px] text-gray-400 flex-shrink-0 hidden sm:inline">
+                          {post.data.tags.slice(0, 2).map((id) => `#${id}`).join(' ')}
+                        </span>
+                      )}
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        )
+      })}
+    </div>
+
+    {posts.length === 0 && (
+      <p class="text-center text-gray-500 py-12">暂无文章</p>
+    )}
+  </section>
+</BaseLayout>

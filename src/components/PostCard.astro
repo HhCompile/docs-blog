@@ -1,0 +1,60 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import Tag from './Tag.astro'
+import Icon from './Icon.astro'
+import { getTags } from '../data/tag-helpers'
+import { calculateReadingTime } from '../lib/reading-time'
+
+export interface Props {
+  post: CollectionEntry<'posts'>
+}
+
+const { post } = Astro.props
+const tags = getTags(post.data.tags)
+const dateStr = post.data.date.toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
+const reading = calculateReadingTime(post.body ?? '')
+
+// 估算卡片高度（用于 CSS aspect-ratio 防 CLS）
+const TITLE_LINES = post.data.title.length > 30 ? 2 : 1
+const HAS_DESC = !!post.data.description
+const HAS_TAGS = tags.length > 0
+---
+
+<article class="card group" style="min-height: 140px;">
+  <a href={`/posts/${post.id}`} class="block">
+    <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-2">
+      <span class="flex items-center gap-1">
+        <Icon name="calendar" size={12} />
+        {dateStr}
+      </span>
+      <span class="flex items-center gap-1">
+        <Icon name="clock" size={12} />
+        {reading.chars.toLocaleString()} 字
+      </span>
+    </div>
+
+    <h2
+      class="text-xl font-bold mb-2 group-hover:text-brand-600 transition-colors"
+      style={`line-height: 1.4; min-height: ${TITLE_LINES * 1.4}em;`}
+    >
+      {post.data.title}
+    </h2>
+
+    {HAS_DESC && (
+      <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-3" style="min-height: 2.5em;">
+        {post.data.description}
+      </p>
+    )}
+  </a>
+
+  {HAS_TAGS && (
+    <div class="flex flex-wrap gap-1.5 mt-3" style="min-height: 1.5em;">
+      {tags.map((tag) => <Tag id={tag.id} size="sm" />)}
+    </div>
+  )}
+</article>
+

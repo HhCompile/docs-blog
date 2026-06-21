@@ -1,0 +1,339 @@
+---
+/**
+ * 全文搜索命令面板（基于 Orama）
+ * - 索引在 pnpm build 时由 scripts/build-search-index.mjs 生成
+ *   输出：dist/client/search-index.json
+ * - 客户端按需加载 + search() 查询
+ * - 多字段加权：title(3) > description(2) > tags(2) > content(1)
+ * - 命中关键字高亮
+ * - 支持快捷键 Cmd/Ctrl + K
+ */
+import Icon from '../components/Icon.astro'
+---
+
+<button
+  id="search-trigger"
+  type="button"
+  aria-label="搜索"
+  class="flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-800 text-sm text-gray-500 hover:border-brand-500 hover:text-brand-600 transition-colors"
+>
+  <Icon name="search" size={14} />
+  <span class="hidden sm:inline">搜索文章...</span>
+  <kbd class="hidden sm:inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+    <span>⌘</span>K
+  </kbd>
+</button>
+
+<!-- 命令面板遮罩 -->
+<div
+  id="search-dialog"
+  class="fixed inset-0 z-[100] hidden items-start justify-center pt-[10vh] px-4 bg-black/40 backdrop-blur-sm"
+  role="dialog"
+  aria-modal="true"
+>
+  <div class="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+    <!-- 搜索框 -->
+    <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+      <Icon name="search" size={20} class="text-gray-400" />
+      <input
+        id="search-input"
+        type="text"
+        placeholder="搜索文章、标签、内容..."
+        autocomplete="off"
+        class="flex-1 bg-transparent outline-none text-base"
+        aria-label="搜索"
+      />
+      <kbd class="text-[10px] px-1.5 py-0.5 rounded border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-500">
+        ESC
+      </kbd>
+    </div>
+
+    <!-- 结果区 -->
+    <div id="search-results" class="max-h-[60vh] overflow-y-auto p-2">
+      <div id="search-empty" class="px-4 py-12 text-center text-sm text-gray-500">
+        <Icon name="text-search" size={36} class="mb-2 inline-block" />
+        <p>输入关键词开始搜索</p>
+        <p class="mt-1 text-xs text-gray-400">支持中英文 · 标题命中权重更高</p>
+      </div>
+      <div id="search-loading" class="hidden px-4 py-8 text-center text-sm text-gray-500">
+        <Icon name="loading" size={14} class="inline-block mr-1" />
+        搜索中...
+      </div>
+      <ul id="search-list" class="space-y-1"></ul>
+    </div>
+
+    <!-- 底部提示 -->
+    <div class="flex items-center justify-between px-4 py-2 border-t border-gray-200 dark:border-gray-800 text-[11px] text-gray-500 bg-gray-50 dark:bg-gray-800/50">
+      <div class="flex items-center gap-3">
+        <span class="flex items-center gap-1">
+          <kbd class="px-1 rounded border border-gray-300 dark:border-gray-700">↑↓</kbd>
+          导航
+        </span>
+        <span class="flex items-center gap-1">
+          <kbd class="px-1 rounded border border-gray-300 dark:border-gray-700">↵</kbd>
+          打开
+        </span>
+      </div>
+      <span>由 Orama 驱动</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // =================== Orama 客户端搜索 ===================
+  // 索引文件在 pnpm build 时生成（dist/client/search-index.json）
+  // 首次搜索时懒加载
+  let oramaPromise: Promise<any> | null = null
+
+  async function loadOrama() {
+    if (oramaPromise) return oramaPromise
+    oramaPromise = (async () => {
+      try {
+        const [orama, indexRes] = await Promise.all([
+          import('@orama/orama'),
+          fetch('/search-index.json').then((r) => {
+            if (!r.ok) throw new Error(`索引文件 HTTP ${r.status}`)
+            return r.json()
+          }),
+        ])
+        // 先创建空 DB（schema 与构建时一致），再灌入已保存的 RawData
+        const db = orama.create({
+          schema: {
+            id: 'string',
+            title: 'string',
+            description: 'string',
+            date: 'string',
+            tags: 'string',
+            tagIds: 'string[]',
+            content: 'string',
+            url: 'string',
+          },
+        })
+        orama.load(db, indexRes)
+        return { orama, db }
+      } catch (err: any) {
+        console.error('[Search] 加载失败（请先运行 pnpm build 生成 search-index.json）:', err.message)
+        return null
+      }
+    })()
+    return oramaPromise
+  }
+
+  // =================== 命中高亮 ===================
+  function escapeHtml(s: string): string {
+    return s.replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]!))
+  }
+
+  function highlight(text: string, query: string): string {
+    if (!text || !query) return escapeHtml(text)
+    const escaped = escapeHtml(text)
+    // 分词（中文按字、英文按词）
+    const tokens = query
+      .toLowerCase()
+      .split(/[\s,，]+/)
+      .flatMap((t) => {
+        if (/^[一-龥]+$/.test(t)) {
+          // 中文：拆成单字 + 整体
+          return [t, ...Array.from(t)]
+        }
+        return [t]
+      })
+      .filter((t) => t.length > 0)
+
+    let result = escaped
+    for (const t of tokens) {
+      if (!t) continue
+      const safe = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const re = new RegExp(`(${safe})`, 'gi')
+      result = result.replace(re, '<mark class="bg-yellow-200 dark:bg-yellow-900/50 text-gray-900 dark:text-gray-100 rounded px-0.5">$1</mark>')
+    }
+    return result
+  }
+
+  function excerpt(content: string, query: string, length = 120): string {
+    if (!content) return ''
+    const lower = content.toLowerCase()
+    const tokens = query.toLowerCase().split(/[\s,，]+/).filter(Boolean)
+    let pos = -1
+    for (const t of tokens) {
+      const idx = lower.indexOf(t)
+      if (idx !== -1 && (pos === -1 || idx < pos)) pos = idx
+    }
+    if (pos === -1) {
+      return content.slice(0, length) + (content.length > length ? '…' : '')
+    }
+    const start = Math.max(0, pos - 30)
+    const end = Math.min(content.length, pos + length)
+    return (start > 0 ? '…' : '') + content.slice(start, end) + (end < content.length ? '…' : '')
+  }
+
+  // =================== UI 交互 ===================
+  const trigger = document.getElementById('search-trigger') as HTMLButtonElement
+  const dialog = document.getElementById('search-dialog') as HTMLDivElement
+  const input = document.getElementById('search-input') as HTMLInputElement
+  const empty = document.getElementById('search-empty') as HTMLDivElement
+  const loading = document.getElementById('search-loading') as HTMLDivElement
+  const list = document.getElementById('search-list') as HTMLUListElement
+
+  let activeIndex = 0
+  let currentResults: any[] = []
+
+  function open() {
+    dialog.classList.remove('hidden')
+    dialog.classList.add('flex')
+    document.body.style.overflow = 'hidden'
+    setTimeout(() => input.focus(), 50)
+    // 预热索引
+    loadOrama()
+  }
+
+  function close() {
+    dialog.classList.add('hidden')
+    dialog.classList.remove('flex')
+    document.body.style.overflow = ''
+    input.value = ''
+    list.innerHTML = ''
+    empty.classList.remove('hidden')
+    activeIndex = 0
+  }
+
+  trigger?.addEventListener('click', open)
+
+  // 快捷键
+  document.addEventListener('keydown', (e) => {
+    const isMod = e.metaKey || e.ctrlKey
+    if (isMod && e.key.toLowerCase() === 'k') {
+      e.preventDefault()
+      open()
+      return
+    }
+    if (e.key === 'Escape' && !dialog.classList.contains('hidden')) {
+      close()
+      return
+    }
+    if (!dialog.classList.contains('hidden') && currentResults.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        activeIndex = Math.min(activeIndex + 1, currentResults.length - 1)
+        updateActive()
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        activeIndex = Math.max(activeIndex - 1, 0)
+        updateActive()
+      } else if (e.key === 'Enter') {
+        e.preventDefault()
+        const item = currentResults[activeIndex]
+        if (item) window.location.href = item.url
+      }
+    }
+  })
+
+  // 点击遮罩关闭
+  dialog?.addEventListener('click', (e) => {
+    if (e.target === dialog) close()
+  })
+
+  // 防抖搜索
+  let timer: ReturnType<typeof setTimeout> | null = null
+  input?.addEventListener('input', () => {
+    const q = input.value.trim()
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => search(q), 150)
+  })
+
+  async function search(q: string) {
+    if (!q) {
+      empty.classList.remove('hidden')
+      loading.classList.add('hidden')
+      list.innerHTML = ''
+      currentResults = []
+      return
+    }
+
+    empty.classList.add('hidden')
+    loading.classList.remove('hidden')
+    list.innerHTML = ''
+
+    const loaded = await loadOrama()
+    if (!loaded) {
+      loading.innerHTML = '<span class="text-red-500">索引未生成，请先运行 pnpm build</span>'
+      return
+    }
+
+    try {
+      const { orama, db } = loaded
+      // 多字段加权
+      const results = await orama.search(db, {
+        term: q,
+        properties: {
+          title: 3,
+          description: 2,
+          tags: 2,
+          content: 1,
+        },
+        boost: {
+          title: 1.5,
+        },
+        tolerance: 1, // 拼写容错
+        limit: 20,
+      })
+      renderResults(results.hits, q)
+    } catch (err: any) {
+      console.error('搜索失败:', err)
+      loading.textContent = '搜索出错：' + err.message
+    }
+  }
+
+  function renderResults(hits: any[], q: string) {
+    loading.classList.add('hidden')
+    currentResults = hits.map((h) => h.document)
+    activeIndex = 0
+
+    if (currentResults.length === 0) {
+      list.innerHTML = `<li class="px-4 py-8 text-center text-sm text-gray-500">
+        <span class="text-3xl block mb-2">🔍</span>
+        没有匹配的结果
+      </li>`
+      return
+    }
+
+    list.innerHTML = currentResults
+      .map(
+        (doc, idx) => {
+          const titleHtml = highlight(doc.title, q)
+          const descHtml = highlight(
+            doc.description || excerpt(doc.content || '', q),
+            q
+          )
+          const dateHtml = doc.date
+            ? `<span class="text-[10px] text-gray-400">${doc.date}</span>`
+            : ''
+          return `
+        <li>
+          <a
+            href="${doc.url}"
+            data-idx="${idx}"
+            class="result-item flex flex-col gap-1 px-3 py-2.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 ${idx === 0 ? 'bg-gray-100 dark:bg-gray-800' : ''}"
+          >
+            <div class="flex items-baseline justify-between gap-2">
+              <div class="font-medium text-sm">${titleHtml}</div>
+              ${dateHtml}
+            </div>
+            ${descHtml ? `<div class="text-xs text-gray-500 line-clamp-2">${descHtml}</div>` : ''}
+          </a>
+        </li>
+      `
+        }
+      )
+      .join('')
+  }
+
+  function updateActive() {
+    list.querySelectorAll('.result-item').forEach((el, idx) => {
+      el.classList.toggle('bg-gray-100', idx === activeIndex)
+      el.classList.toggle('dark:bg-gray-800', idx === activeIndex)
+    })
+  }
+</script>

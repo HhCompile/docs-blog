@@ -1,0 +1,112 @@
+---
+export const prerender = true
+import { getCollection } from 'astro:content'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Icon from '../components/Icon.astro'
+import PostCard from '../components/PostCard.astro'
+import { listTags, countPostsByTag } from '../data/tag-helpers'
+import { calculateReadingTime } from '../lib/reading-time'
+
+// 草稿不显示
+const allPosts = await getCollection('posts', ({ data }) => !data.draft)
+const posts = allPosts
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 6)
+
+// 统计
+const totalWords = allPosts.reduce(
+  (sum, p) => sum + calculateReadingTime(p.body ?? '').chars,
+  0
+)
+const totalTags = listTags().filter((t) =>
+  allPosts.some((p) => p.data.tags?.includes(t.id))
+).length
+
+// 标签云
+const tagCounts = countPostsByTag(allPosts, (p) => p.data.tags)
+const tagsWithCount = listTags()
+  .map((t) => ({ ...t, count: tagCounts.get(t.id) ?? 0 }))
+  .filter((t) => t.count > 0)
+  .sort((a, b) => b.count - a.count)
+---
+
+<BaseLayout title="首页">
+  <!-- Hero -->
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 text-center">
+    <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
+      欢迎来到我的博客
+    </h1>
+    <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
+      记录前端开发、技术学习与生活思考。这里是思考的存档站。
+    </p>
+    <div class="flex justify-center gap-3 mb-8">
+      <a href="/posts" class="btn-primary">
+        开始阅读
+        <Icon name="arrow-right" size={16} class="ml-1" />
+      </a>
+      <a href="/tags" class="btn-outline">
+        浏览标签
+      </a>
+    </div>
+
+    <!-- 统计条 -->
+    <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-gray-500">
+      <a href="/posts" class="hover:text-brand-600 transition-colors flex items-center gap-1.5">
+        <Icon name="file-document-multiple" size={14} class="text-brand-600" />
+        <strong class="text-gray-900 dark:text-gray-100">{allPosts.length}</strong> 篇文章
+      </a>
+      <span class="flex items-center gap-1.5">
+        <Icon name="counter" size={14} class="text-brand-600" />
+        <strong class="text-gray-900 dark:text-gray-100">{totalWords.toLocaleString()}</strong> 字
+      </span>
+      <a href="/tags" class="hover:text-brand-600 transition-colors flex items-center gap-1.5">
+        <Icon name="tag-multiple" size={14} class="text-brand-600" />
+        <strong class="text-gray-900 dark:text-gray-100">{totalTags}</strong> 个标签
+      </a>
+      <a href="/archive" class="hover:text-brand-600 transition-colors flex items-center gap-1.5">
+        <Icon name="calendar" size={14} class="text-brand-600" />
+        归档
+      </a>
+    </div>
+  </section>
+
+  <!-- 标签云 -->
+  {tagsWithCount.length > 0 && (
+    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+      <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 text-center">
+        标签云
+      </h2>
+      <div class="flex flex-wrap gap-2 justify-center">
+        {tagsWithCount.slice(0, 20).map((tag) => (
+          <a
+            href={`/tags/${tag.id}`}
+            class="tag hover:opacity-80 transition-opacity"
+            style={`background-color: ${tag.color}20; color: ${tag.color};`}
+            title={tag.description}
+          >
+            {tag.name}
+            <span class="ml-1 text-[10px] opacity-70">{tag.count}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- 最新文章 -->
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="flex items-end justify-between mb-6">
+      <h2 class="text-2xl font-bold">最新文章</h2>
+      <a href="/posts" class="text-sm text-brand-600 hover:underline flex items-center gap-1">
+        查看全部 <Icon name="arrow-right" size={14} />
+      </a>
+    </div>
+
+    {posts.length === 0 ? (
+      <p class="text-center text-gray-500 py-12">暂无文章</p>
+    ) : (
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {posts.map((post) => <PostCard post={post} />)}
+      </div>
+    )}
+  </section>
+</BaseLayout>

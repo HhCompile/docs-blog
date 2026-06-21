@@ -1,0 +1,177 @@
+---
+import { getCollection, render } from 'astro:content'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import Tag from '../../components/Tag.astro'
+import Icon from '../../components/Icon.astro'
+import TableOfContents from '../../components/TableOfContents.astro'
+import AISummary from '../../components/AISummary'
+import PostAIAssistant from '../../components/PostAIAssistant'
+import PostNavigation from '../../components/PostNavigation.astro'
+import RelatedPosts from '../../components/RelatedPosts.astro'
+import { calculateReadingTime } from '../../lib/reading-time'
+
+// 显式声明为 SSG（pre-rendered），不依赖运行时 SSR
+export const prerender = true
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft)
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }))
+}
+
+const { post } = Astro.props
+const { Content, headings } = await render(post)
+const tags = post.data.tags ?? []
+
+// 摘要：构建时缓存优先（SSG 阶段读取）
+import { promises as fs } from 'node:fs'
+import path from 'node:path'
+
+let initialSummary: string | undefined
+try {
+  const cacheFile = path.resolve(process.cwd(), '.cache/summaries.json')
+  const raw = await fs.readFile(cacheFile, 'utf-8')
+  const cache = JSON.parse(raw)
+  initialSummary = cache[post.id]?.summary
+} catch {
+  // 无缓存，组件会自动调 API fallback
+}
+
+const reading = calculateReadingTime(post.body ?? '')
+
+// 上一篇 / 下一篇
+const allPosts = await getCollection('posts', ({ data }) => !data.draft)
+const sorted = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+const idx = sorted.findIndex((p) => p.id === post.id)
+const prev = idx < sorted.length - 1 ? { id: sorted[idx + 1].id, title: sorted[idx + 1].data.title } : null
+const next = idx > 0 ? { id: sorted[idx - 1].id, title: sorted[idx - 1].data.title } : null
+const dateStr = post.data.date.toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+})
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  type="article"
+  publishedDate={post.data.date}
+  updatedDate={post.data.updated}
+  tags={tags}
+>
+  <!-- 文章容器：左侧 TOC（xl 以上）+ 主内容 -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="xl:grid xl:grid-cols-[1fr_240px] xl:gap-10">
+      <article>
+        <!-- 文章头部 -->
+        <header class="mb-8">
+          <h1 class="text-4xl font-bold tracking-tight mb-4">
+            {post.data.title}
+          </h1>
+
+          {post.data.description && (
+            <p class="text-lg text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+              {post.data.description}
+            </p>
+          )}
+
+          <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
+            <span class="flex items-center gap-1">
+              <Icon name="calendar" size={14} />
+              {dateStr}
+            </span>
+            <span class="flex items-center gap-1">
+              <Icon name="clock" size={14} />
+              预计阅读 {reading.label}
+            </span>
+            <span class="flex items-center gap-1">
+              <Icon name="text" size={14} />
+              {reading.chars} 字
+            </span>
+            {post.data.updated && (
+              <span class="flex items-center gap-1">
+                <Icon name="pencil" size={14} />
+                更新于 {post.data.updated.toLocaleDateString('zh-CN')}
+              </span>
+            )}
+          </div>
+
+          {tags.length > 0 && (
+            <div class="flex flex-wrap gap-2">
+              {tags.map((id) => <Tag id={id} size="md" />)}
+            </div>
+          )}
+        </header>
+
+        <!-- AI 摘要：标签和内容之间 -->
+        <AISummary
+          client:visible
+          slug={post.id}
+          title={post.data.title}
+          content={post.body ?? ''}
+          initialSummary={initialSummary}
+        />
+
+        <!-- 文章正文 -->
+        <div class="prose prose-lg dark:prose-invert max-w-none">
+          <Content />
+        </div>
+
+        <!-- 文章底部 -->
+        <footer class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <p class="text-sm text-gray-500">
+              如果对你有帮助，欢迎分享到
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.data.title)}&url=${encodeURIComponent(new URL(Astro.url.pathname, Astro.site!).toString())}`}
+                target="_blank"
+                rel="noopener"
+                class="text-brand-600 hover:underline"
+              >
+                Twitter
+              </a>
+              或
+              <a
+                href={`https://service.weibo.com/share/share.php?url=${encodeURIComponent(new URL(Astro.url.pathname, Astro.site!).toString())}&title=${encodeURIComponent(post.data.title)}`}
+                target="_blank"
+                rel="noopener"
+                class="text-brand-600 hover:underline"
+              >
+                微博
+              </a>
+            </p>
+            <a href="/posts" class="btn-outline text-sm">
+              <Icon name="arrow-left" size={14} class="mr-1" />
+              返回列表
+            </a>
+          </div>
+        </footer>
+
+        <!-- 上下篇导航 -->
+        <PostNavigation prev={prev} next={next} />
+
+        <!-- 相关文章 -->
+        <RelatedPosts
+          currentId={post.id}
+          currentTags={tags}
+          allPosts={allPosts}
+          limit={4}
+        />
+      </article>
+
+      <!-- 右侧 TOC -->
+      <TableOfContents headings={headings} />
+    </div>
+  </div>
+
+  <!-- 文章页 AI 小助手 -->
+  <PostAIAssistant client:idle postTitle={post.data.title} />
+</BaseLayout>
+
+<script>
+  // 代码块复制按钮
+  import '../../scripts/code-copy.ts'
+</script>

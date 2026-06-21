@@ -1,0 +1,22 @@
+---
+import siteConfig from '../data/site.config.mjs'
+import Icon from './Icon.astro'
+const year = new Date().getFullYear()
+---
+
+<footer class="mt-24 border-t border-gray-200 dark:border-gray-800">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <p class="text-sm text-gray-600 dark:text-gray-400">
+      © {year} {siteConfig.site_author} · 基于
+      <a href="https://astro.build" target="_blank" rel="noopener" class="text-brand-600 hover:underline">Astro</a> 构建
+    </p>
+    <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+      <a href="/rss.xml" class="hover:text-brand-600 transition-colors flex items-center gap-1">
+        <Icon name="rss" size={14} /> RSS
+      </a>
+      <a href="/sitemap-index.xml" class="hover:text-brand-600 transition-colors flex items-center gap-1">
+        <Icon name="sitemap" size={14} /> Sitemap
+      </a>
+    </div>
+  </div>
+</footer>

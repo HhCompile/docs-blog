@@ -1,0 +1,195 @@
+---
+export const prerender = false
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import Icon from '../../../components/Icon.astro'
+import { listErrors, getStats, type ErrorLevel } from '../../../lib/error-store'
+
+// 鉴权由 src/middleware.ts 统一处理
+
+const url = Astro.url
+const level = url.searchParams.get('level') as ErrorLevel | null
+const search = url.searchParams.get('q') || ''
+const page = Math.max(1, Number(url.searchParams.get('page') || '1'))
+const limit = 30
+
+const [result, stats] = await Promise.all([
+  listErrors({ level: level ?? undefined, search, limit, offset: (page - 1) * limit }),
+  getStats(),
+])
+
+const totalPages = Math.max(1, Math.ceil(result.total / limit))
+const levelLabel: Record<ErrorLevel, string> = {
+  client: '客户端',
+  server: '服务端',
+  api: 'API',
+  resource: '资源 404',
+}
+const levelColor: Record<ErrorLevel, string> = {
+  client: 'bg-blue-100 text-blue-700',
+  server: 'bg-red-100 text-red-700',
+  api: 'bg-amber-100 text-amber-700',
+  resource: 'bg-gray-100 text-gray-700',
+}
+
+function fmtTime(ts: number) {
+  const d = new Date(ts)
+  return d.toLocaleString('zh-CN', { hour12: false })
+}
+---
+
+<BaseLayout title="错误日志" description="错误监控后台">
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold flex items-center gap-2">
+          <Icon name="alert-circle" size={22} class="text-red-500" />
+          错误日志
+        </h1>
+        <p class="text-sm text-gray-500 mt-1">
+          共 <strong>{stats.total}</strong> 条 · 最近 24h <strong>{stats.recent24h}</strong> 条
+        </p>
+      </div>
+      <a href="/admin/logout" class="text-sm text-gray-500 hover:text-red-600">退出</a>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-800">
+        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.total}</div>
+        <div class="text-xs text-gray-500 mt-1">总计</div>
+      </div>
+      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-800">
+        <div class="text-2xl font-bold text-red-600">{stats.byLevel.server}</div>
+        <div class="text-xs text-gray-500 mt-1">服务端</div>
+      </div>
+      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-800">
+        <div class="text-2xl font-bold text-blue-600">{stats.byLevel.client}</div>
+        <div class="text-xs text-gray-500 mt-1">客户端</div>
+      </div>
+      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-800">
+        <div class="text-2xl font-bold text-amber-600">{stats.byLevel.api}</div>
+        <div class="text-xs text-gray-500 mt-1">API</div>
+      </div>
+      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-800">
+        <div class="text-2xl font-bold text-gray-600">{stats.byLevel.resource}</div>
+        <div class="text-xs text-gray-500 mt-1">资源 404</div>
+      </div>
+    </div>
+
+    <!-- 筛选 -->
+    <form method="GET" class="flex flex-wrap gap-2 mb-4">
+      <select
+        name="level"
+        class="px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"
+      >
+        <option value="">全部类型</option>
+        <option value="server" selected={level === 'server'}>服务端</option>
+        <option value="client" selected={level === 'client'}>客户端</option>
+        <option value="api" selected={level === 'api'}>API</option>
+        <option value="resource" selected={level === 'resource'}>资源 404</option>
+      </select>
+      <input
+        type="text"
+        name="q"
+        value={search}
+        placeholder="搜索消息/URL/堆栈..."
+        class="flex-1 min-w-[200px] px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"
+      />
+      <button type="submit" class="btn-primary text-sm">筛选</button>
+      {(level || search) && (
+        <a href="/admin/errors" class="btn-outline text-sm">清空</a>
+      )}
+    </form>
+
+    <!-- 列表 -->
+    {result.items.length === 0 ? (
+      <div class="p-12 text-center text-gray-500 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
+        <Icon name="check" size={40} class="text-green-500 inline-block mb-2" />
+        <p>没有匹配的错误记录</p>
+      </div>
+    ) : (
+      <div class="space-y-2">
+        {result.items.map((err) => (
+          <details class="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+            <summary class="cursor-pointer p-3 hover:bg-gray-50 dark:hover:bg-gray-900 flex items-start gap-3">
+              <span class={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${levelColor[err.level]}`}>
+                {levelLabel[err.level]}
+              </span>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium truncate">{err.message}</div>
+                <div class="text-xs text-gray-500 mt-0.5 flex flex-wrap gap-x-3">
+                  <span>{fmtTime(err.timestamp)}</span>
+                  {err.url && <span class="font-mono">{err.url}</span>}
+                  {err.status && <span>HTTP {err.status}</span>}
+                </div>
+              </div>
+              <button
+                data-delete-id={err.id}
+                class="delete-btn text-gray-400 hover:text-red-600 flex-shrink-0"
+                title="删除"
+              >
+                <Icon name="x" size={16} />
+              </button>
+            </summary>
+            <div class="p-3 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800 text-xs space-y-2">
+              {err.type && <div><span class="text-gray-500">类型:</span> <code>{err.type}</code></div>}
+              {err.userAgent && (
+                <div>
+                  <span class="text-gray-500">UA:</span> <span class="font-mono text-[11px]">{err.userAgent}</span>
+                </div>
+              )}
+              {err.ip && <div><span class="text-gray-500">IP:</span> <code>{err.ip}</code></div>}
+              {err.context && (
+                <div>
+                  <span class="text-gray-500">上下文:</span>
+                  <pre class="mt-1 text-[11px] overflow-x-auto">{JSON.stringify(err.context, null, 2)}</pre>
+                </div>
+              )}
+              {err.stack && (
+                <div>
+                  <span class="text-gray-500">堆栈:</span>
+                  <pre class="mt-1 text-[11px] overflow-x-auto whitespace-pre-wrap break-all">{err.stack}</pre>
+                </div>
+              )}
+            </div>
+          </details>
+        ))}
+      </div>
+    )}
+
+    <!-- 分页 -->
+    {totalPages > 1 && (
+      <div class="flex justify-center gap-2 mt-6">
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+          <a
+            href={`/admin/errors?level=${level ?? ''}&q=${search}&page=${p}`}
+            class:list={[
+              'px-3 py-1 rounded-md text-sm',
+              p === page
+                ? 'bg-brand-600 text-white'
+                : 'border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800',
+            ]}
+          >
+            {p}
+          </a>
+        ))}
+      </div>
+    )}
+  </main>
+</BaseLayout>
+
+<script>
+  // 删除按钮
+  document.querySelectorAll<HTMLButtonElement>('.delete-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('确认删除？')) return
+      const id = btn.dataset.deleteId
+      if (!id) return
+      await fetch(`/admin/errors/api/delete?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      })
+      btn.closest('details')?.remove()
+    })
+  })
+</script>

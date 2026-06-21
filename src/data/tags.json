@@ -1,0 +1,74 @@
+[
+  {
+    "id": "astro",
+    "name": "Astro",
+    "color": "#FF5D01",
+    "description": "现代化静态站点生成器，零 JS 默认"
+  },
+  {
+    "id": "react",
+    "name": "React",
+    "color": "#61DAFB",
+    "description": "用于构建用户界面的 JavaScript 库"
+  },
+  {
+    "id": "vue",
+    "name": "Vue",
+    "color": "#42B883",
+    "description": "渐进式 JavaScript 框架"
+  },
+  {
+    "id": "typescript",
+    "name": "TypeScript",
+    "color": "#3178C6",
+    "description": "JavaScript 的超集，添加类型系统"
+  },
+  {
+    "id": "javascript",
+    "name": "JavaScript",
+    "color": "#F7DF1E",
+    "description": "Web 脚本语言"
+  },
+  {
+    "id": "css",
+    "name": "CSS",
+    "color": "#1572B6",
+    "description": "层叠样式表"
+  },
+  {
+    "id": "unocss",
+    "name": "UnoCSS",
+    "color": "#858585",
+    "description": "即时按需原子化 CSS 引擎"
+  },
+  {
+    "id": "vitepress",
+    "name": "VitePress",
+    "color": "#5A67D8",
+    "description": "Vue 驱动的静态站点生成器"
+  },
+  {
+    "id": "seo",
+    "name": "SEO",
+    "color": "#0F9D58",
+    "description": "搜索引擎优化"
+  },
+  {
+    "id": "tutorial",
+    "name": "教程",
+    "color": "#8B5CF6",
+    "description": "技术教程与入门指南"
+  },
+  {
+    "id": "frontend",
+    "name": "前端",
+    "color": "#FF6B6B",
+    "description": "前端开发相关内容"
+  },
+  {
+    "id": "tools",
+    "name": "工具",
+    "color": "#10B981",
+    "description": "开发工具与提效"
+  }
+]

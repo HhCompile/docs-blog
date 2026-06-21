@@ -1,0 +1,40 @@
+---
+import BaseHead from '../components/BaseHead.astro'
+import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
+import SearchProvider from './SearchProvider.astro'
+
+export interface Props {
+  title: string
+  description?: string
+  image?: string
+  type?: 'website' | 'article'
+  publishedDate?: Date
+  updatedDate?: Date
+  tags?: string[]
+}
+
+const props = Astro.props
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead {...props} />
+  </head>
+  <body class="min-h-screen flex flex-col antialiased">
+    <Header />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+
+    <!-- 全局命令面板：搜索（⌘K） -->
+    <SearchProvider />
+
+    <!-- 客户端错误监控 -->
+    <script>
+      import '../scripts/client-errors.ts'
+    </script>
+  </body>
+</html>

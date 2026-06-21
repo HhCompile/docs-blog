@@ -1,0 +1,42 @@
+---
+export const prerender = true
+import BaseLayout from '../layouts/BaseLayout.astro'
+import siteConfig from '../data/site.config.mjs'
+---
+
+<BaseLayout title="关于" description={`关于 ${siteConfig.site_author}`}>
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-4xl font-bold mb-6">关于我</h1>
+
+    <div class="prose dark:prose-invert max-w-none">
+      <p>
+        你好，我是 <strong>{siteConfig.site_author}</strong>。欢迎来到我的个人博客。
+      </p>
+
+      <p>这里记录我在前端开发、技术学习与生活中的所思所感。</p>
+
+      <h2>技术栈</h2>
+      <ul>
+        <li><strong>框架</strong>: Astro / React / Vue</li>
+        <li><strong>语言</strong>: TypeScript / JavaScript</li>
+        <li><strong>样式</strong>: UnoCSS / Tailwind</li>
+        <li><strong>部署</strong>: Vercel / Cloudflare Pages / Netlify</li>
+      </ul>
+
+      <h2>本站特点</h2>
+      <ul>
+        <li>⚡ <strong>极致性能</strong>: Astro 默认零 JS，按需加载</li>
+        <li>🔍 <strong>SEO 友好</strong>: 自动生成 sitemap、RSS、JSON-LD 结构化数据</li>
+        <li>🏷️ <strong>标签系统</strong>: 12 个预定义标签，支持标签云与按标签筛选</li>
+        <li>📤 <strong>一键分发</strong>: 支持自动发布到 CSDN / 掘金</li>
+        <li>🌗 <strong>深色模式</strong>: 跟随系统或手动切换</li>
+      </ul>
+
+      <h2>联系方式</h2>
+      <ul>
+        <li>GitHub: <a href={siteConfig.github_url} target="_blank" rel="noopener">{siteConfig.github_url}</a></li>
+        <li>RSS: <a href="/rss.xml">/rss.xml</a></li>
+      </ul>
+    </div>
+  </article>
+</BaseLayout>

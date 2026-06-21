@@ -1,0 +1,52 @@
+---
+/**
+ * 文章底部上一篇 / 下一篇导航
+ * 按日期排序，自动取前后两篇
+ */
+import Icon from './Icon.astro'
+
+export interface Props {
+  prev: { id: string; title: string } | null
+  next: { id: string; title: string } | null
+}
+
+const { prev, next } = Astro.props
+---
+
+{(prev || next) && (
+  <nav class="mt-10 grid sm:grid-cols-2 gap-3" aria-label="文章导航">
+    {prev ? (
+      <a
+        href={`/posts/${prev.id}`}
+        class="card group flex flex-col !p-4 hover:border-brand-500"
+      >
+        <span class="text-xs text-gray-500 flex items-center gap-1 mb-1">
+          <Icon name="arrow-left" size={14} class="group-hover:-translate-x-0.5 transition-transform" />
+          上一篇
+        </span>
+        <span class="font-medium text-sm line-clamp-2 group-hover:text-brand-600 transition-colors">
+          {prev.title}
+        </span>
+      </a>
+    ) : (
+      <div></div>
+    )}
+
+    {next ? (
+      <a
+        href={`/posts/${next.id}`}
+        class="card group flex flex-col !p-4 hover:border-brand-500 sm:text-right sm:items-end"
+      >
+        <span class="text-xs text-gray-500 flex items-center gap-1 mb-1 sm:flex-row-reverse">
+          <Icon name="arrow-right" size={14} class="group-hover:translate-x-0.5 transition-transform" />
+          下一篇
+        </span>
+        <span class="font-medium text-sm line-clamp-2 group-hover:text-brand-600 transition-colors">
+          {next.title}
+        </span>
+      </a>
+    ) : (
+      <div></div>
+    )}
+  </nav>
+)}

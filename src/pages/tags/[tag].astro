@@ -1,0 +1,68 @@
+---
+export const prerender = true
+import { getCollection, type CollectionEntry } from 'astro:content'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import Icon from '../../components/Icon.astro'
+import PostCard from '../../components/PostCard.astro'
+import { listTags } from '../../data/tag-helpers'
+
+export async function getStaticPaths() {
+  const tags = listTags()
+  return Promise.all(
+    tags.map(async (tag) => {
+      const posts = await getCollection('posts', ({ data }) => {
+        if (data.draft) return false
+        return data.tags?.includes(tag.id) ?? false
+      })
+      return {
+        params: { tag: tag.id },
+        props: {
+          tag,
+          posts: posts
+            .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()),
+        },
+      }
+    })
+  )
+}
+
+interface Props {
+  tag: { id: string; name: string; color: string; description: string }
+  posts: CollectionEntry<'posts'>[]
+}
+
+const { tag, posts } = Astro.props
+---
+
+<BaseLayout
+  title={`标签：${tag.name}`}
+  description={tag.description}
+>
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <a href="/tags" class="text-sm text-gray-500 hover:text-brand-600 mb-4 inline-flex items-center gap-1">
+      <Icon name="arrow-left" size={14} /> 返回所有标签
+    </a>
+
+    <div class="mb-8 flex items-center gap-3">
+      <span
+        class="tag text-sm px-3 py-1"
+        style={`background-color: ${tag.color}20; color: ${tag.color};`}
+      >
+        {tag.name}
+      </span>
+      <span class="text-gray-500 text-sm">
+        {posts.length} 篇文章
+      </span>
+    </div>
+
+    <p class="text-gray-600 dark:text-gray-400 mb-8">{tag.description}</p>
+
+    {posts.length === 0 ? (
+      <p class="text-center text-gray-500 py-12">该标签下暂无文章</p>
+    ) : (
+      <div class="grid sm:grid-cols-2 gap-4">
+        {posts.map((post) => <PostCard post={post} />)}
+      </div>
+    )}
+  </section>
+</BaseLayout>

@@ -1,0 +1,63 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import Tag from './Tag.astro'
+import Icon from './Icon.astro'
+
+export interface Props {
+  currentId: string
+  currentTags: string[]
+  allPosts: CollectionEntry<'posts'>[]
+  limit?: number
+}
+
+const { currentId, currentTags, allPosts, limit = 4 } = Astro.props
+
+// 计算相关文章：同标签数 * 3 + 时间近 * 1，加权排序
+const scored = allPosts
+  .filter((p) => p.id !== currentId)
+  .map((p) => {
+    const overlap = (p.data.tags ?? []).filter((t) => currentTags.includes(t)).length
+    const ageMs = Date.now() - p.data.date.valueOf()
+    const recencyScore = 1 / (1 + ageMs / (1000 * 60 * 60 * 24 * 30)) // 30 天衰减
+    return { post: p, score: overlap * 3 + recencyScore }
+  })
+  .filter((x) => x.score > 0)
+  .sort((a, b) => b.score - a.score)
+  .slice(0, limit)
+
+const items = scored.map((x) => x.post)
+---
+
+{items.length > 0 && (
+  <section class="mt-10 pt-8 border-t border-gray-200 dark:border-gray-800">
+    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+      <Icon name="link-variant" size={18} class="text-brand-600" />
+      相关文章
+    </h2>
+    <div class="grid sm:grid-cols-2 gap-3">
+      {items.map((post) => {
+        const tags = (post.data.tags ?? []).slice(0, 3)
+        return (
+          <a
+            href={`/posts/${post.id}`}
+            class="card !p-4 group hover:border-brand-500"
+          >
+            <h3 class="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-brand-600 transition-colors">
+              {post.data.title}
+            </h3>
+            {post.data.description && (
+              <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">
+                {post.data.description}
+              </p>
+            )}
+            {tags.length > 0 && (
+              <div class="flex flex-wrap gap-1">
+                {tags.map((id) => <Tag id={id} size="sm" />)}
+              </div>
+            )}
+          </a>
+        )
+      })}
+    </div>
+  </section>
+)}

@@ -1,0 +1,52 @@
+---
+export const prerender = true
+import { getCollection } from 'astro:content'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { listTags, countPostsByTag } from '../../data/tag-helpers'
+
+const allPosts = await getCollection('posts', ({ data }) => !data.draft)
+const tagCounts = countPostsByTag(allPosts, (p) => p.data.tags)
+const tagsWithCount = listTags()
+  .map((t) => ({ ...t, count: tagCounts.get(t.id) ?? 0 }))
+  .sort((a, b) => b.count - a.count)
+---
+
+<BaseLayout
+  title="标签"
+  description="按标签浏览所有文章"
+>
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-3xl font-bold mb-2">标签</h1>
+    <p class="text-gray-600 dark:text-gray-400 mb-8">
+      共 {tagsWithCount.length} 个标签 · 文章数 = 标签旁数字
+    </p>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {tagsWithCount.map((tag) => (
+        <a
+          href={`/tags/${tag.id}`}
+          class="card hover:shadow-md transition-all"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <span
+              class="tag"
+              style={`background-color: ${tag.color}20; color: ${tag.color};`}
+            >
+              {tag.name}
+            </span>
+            <span class="text-xs text-gray-500">
+              {tag.count} 篇
+            </span>
+          </div>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            {tag.description}
+          </p>
+        </a>
+      ))}
+    </div>
+
+    {tagsWithCount.length === 0 && (
+      <p class="text-center text-gray-500 py-12">暂无标签</p>
+    )}
+  </section>
+</BaseLayout>

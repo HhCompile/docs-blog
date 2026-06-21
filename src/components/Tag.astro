@@ -1,0 +1,37 @@
+---
+import { getTag } from '../data/tag-helpers'
+
+export interface Props {
+  id: string
+  size?: 'sm' | 'md'
+  interactive?: boolean
+}
+
+const { id, size = 'sm', interactive = true } = Astro.props
+const tag = getTag(id)
+if (!tag) return Astro.redirect('/404')
+
+const sizeClass = size === 'sm' ? 'text-xs px-2.5 py-0.5' : 'text-sm px-3 py-1'
+---
+
+{interactive ? (
+  <a
+    href={`/tags/${tag.id}`}
+    class:list={[
+      'tag hover:opacity-80',
+      sizeClass,
+    ]}
+    style={`background-color: ${tag.color}20; color: ${tag.color};`}
+    title={tag.description}
+  >
+    {tag.name}
+  </a>
+) : (
+  <span
+    class:list={['tag', sizeClass]}
+    style={`background-color: ${tag.color}20; color: ${tag.color};`}
+    title={tag.description}
+  >
+    {tag.name}
+  </span>
+)}
