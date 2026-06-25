@@ -34,3 +34,9 @@ pnpm-debug.log*
 # Claude Code 本地配置（不入仓）
 .claude/
 docs/examples/
+
+# Playwright MCP 临时文件
+.playwright-mcp/
+# 对比截图
+before-*.png
+after-*.png

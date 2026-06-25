@@ -1,13 +1,13 @@
 ---
 import { getCollection, render } from 'astro:content'
 import BaseLayout from '../../layouts/BaseLayout.astro'
-import Tag from '../../components/Tag.astro'
 import Icon from '../../components/Icon.astro'
-import TableOfContents from '../../components/TableOfContents.astro'
+import PostSidebar from '../../components/PostSidebar.astro'
 import AISummary from '../../components/AISummary'
 import PostAIAssistant from '../../components/PostAIAssistant'
 import PostNavigation from '../../components/PostNavigation.astro'
 import RelatedPosts from '../../components/RelatedPosts.astro'
+import { getTags } from '../../data/tag-helpers'
 import { calculateReadingTime } from '../../lib/reading-time'
 
 // 显式声明为 SSG（pre-rendered），不依赖运行时 SSR
@@ -62,9 +62,19 @@ const dateStr = post.data.date.toLocaleDateString('zh-CN', {
   updatedDate={post.data.updated}
   tags={tags}
 >
-  <!-- 文章容器：左侧 TOC（xl 以上）+ 主内容 -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="xl:grid xl:grid-cols-[1fr_240px] xl:gap-10">
+  <!-- 文章容器：左侧 sticky 边栏 + 主内容（xl 以上） -->
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="xl:grid xl:grid-cols-[220px_1fr] xl:gap-8">
+      <!-- 左侧 sticky 边栏：返回 / 目录 / 元信息 -->
+      <PostSidebar
+        headings={headings}
+        dateStr={dateStr}
+        readingLabel={reading.label}
+        chars={reading.chars}
+        updatedStr={post.data.updated?.toLocaleDateString('zh-CN')}
+        tags={getTags(tags)}
+      />
+
       <article>
         <!-- 文章头部 -->
         <header class="mb-8">
@@ -78,42 +88,15 @@ const dateStr = post.data.date.toLocaleDateString('zh-CN', {
             </p>
           )}
 
-          <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
-            <span class="flex items-center gap-1">
-              <Icon name="calendar" size={14} />
-              {dateStr}
-            </span>
-            <span class="flex items-center gap-1">
-              <Icon name="clock" size={14} />
-              预计阅读 {reading.label}
-            </span>
-            <span class="flex items-center gap-1">
-              <Icon name="text" size={14} />
-              {reading.chars} 字
-            </span>
-            {post.data.updated && (
-              <span class="flex items-center gap-1">
-                <Icon name="pencil" size={14} />
-                更新于 {post.data.updated.toLocaleDateString('zh-CN')}
-              </span>
-            )}
-          </div>
-
-          {tags.length > 0 && (
-            <div class="flex flex-wrap gap-2">
-              {tags.map((id) => <Tag id={id} size="md" />)}
-            </div>
-          )}
+          <!-- AI 摘要：标签和内容之间 -->
+          <AISummary
+            client:visible
+            slug={post.id}
+            title={post.data.title}
+            content={post.body ?? ''}
+            initialSummary={initialSummary}
+          />
         </header>
-
-        <!-- AI 摘要：标签和内容之间 -->
-        <AISummary
-          client:visible
-          slug={post.id}
-          title={post.data.title}
-          content={post.body ?? ''}
-          initialSummary={initialSummary}
-        />
 
         <!-- 文章正文 -->
         <div class="prose prose-lg dark:prose-invert max-w-none">
@@ -161,9 +144,6 @@ const dateStr = post.data.date.toLocaleDateString('zh-CN', {
           limit={4}
         />
       </article>
-
-      <!-- 右侧 TOC -->
-      <TableOfContents headings={headings} />
     </div>
   </div>
 

@@ -4,9 +4,7 @@
     ".": {
       "release-type": "node",
       "package-name": "docs-blog",
-      "changelog-path": "CHANGELOG.md",
-      "bump-minor-pre-major": false,
-      "bump-patch-for-minor-pre-major": false
+      "changelog-path": "CHANGELOG.md"
     }
   }
 }

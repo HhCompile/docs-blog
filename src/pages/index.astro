@@ -32,7 +32,7 @@ const tagsWithCount = listTags()
 
 <BaseLayout title="首页">
   <!-- Hero -->
-  <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 text-center">
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 text-center">
     <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
       欢迎来到我的博客
     </h1>
@@ -72,7 +72,7 @@ const tagsWithCount = listTags()
 
   <!-- 标签云 -->
   {tagsWithCount.length > 0 && (
-    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
       <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 text-center">
         标签云
       </h2>
@@ -93,7 +93,7 @@ const tagsWithCount = listTags()
   )}
 
   <!-- 最新文章 -->
-  <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="flex items-end justify-between mb-6">
       <h2 class="text-2xl font-bold">最新文章</h2>
       <a href="/posts" class="text-sm text-brand-600 hover:underline flex items-center gap-1">
@@ -104,7 +104,7 @@ const tagsWithCount = listTags()
     {posts.length === 0 ? (
       <p class="text-center text-gray-500 py-12">暂无文章</p>
     ) : (
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="grid sm:grid-cols-2 gap-5">
         {posts.map((post) => <PostCard post={post} />)}
       </div>
     )}
