@@ -5,6 +5,14 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
+## [1.2.0](https://github.com/HhCompile/docs-blog/compare/docs-blog-v1.1.0...docs-blog-v1.2.0) (2026-06-25)
+
+
+### Features
+
+* 优化页面布局解决左右空旷 ([e1d28ad](https://github.com/HhCompile/docs-blog/commit/e1d28ad5e68cfcd87f728983755fe957a6f2a201))
+* 充实 PostSidebar 解决左侧下半空旷 ([a7ffc3b](https://github.com/HhCompile/docs-blog/commit/a7ffc3b7aa4a1639c3b83cf527b127761a23cb65))
+
 ## [1.1.0](https://github.com/HhCompile/docs-blog/compare/docs-blog-v1.0.0...docs-blog-v1.1.0) (2026-06-21)
 
 
