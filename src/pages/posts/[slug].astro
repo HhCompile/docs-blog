@@ -6,9 +6,9 @@ import PostSidebar from '../../components/PostSidebar.astro'
 import AISummary from '../../components/AISummary'
 import PostAIAssistant from '../../components/PostAIAssistant'
 import PostNavigation from '../../components/PostNavigation.astro'
-import RelatedPosts from '../../components/RelatedPosts.astro'
 import { getTags } from '../../data/tag-helpers'
 import { calculateReadingTime } from '../../lib/reading-time'
+import { getRelatedPosts } from '../../lib/related-posts'
 
 // 显式声明为 SSG（pre-rendered），不依赖运行时 SSR
 export const prerender = true
@@ -52,6 +52,9 @@ const dateStr = post.data.date.toLocaleDateString('zh-CN', {
   month: 'long',
   day: 'numeric',
 })
+
+// 相关文章（侧栏用，limit=3 适合侧栏空间）
+const relatedPosts = getRelatedPosts(post.id, tags, allPosts, 3)
 ---
 
 <BaseLayout
@@ -65,7 +68,7 @@ const dateStr = post.data.date.toLocaleDateString('zh-CN', {
   <!-- 文章容器：左侧 sticky 边栏 + 主内容（xl 以上） -->
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="xl:grid xl:grid-cols-[220px_1fr] xl:gap-8">
-      <!-- 左侧 sticky 边栏：返回 / 目录 / 元信息 -->
+      <!-- 左侧 sticky 边栏：返回 / 进度 / 目录 / 元信息 / 标签 / 作者 / 相关文章 -->
       <PostSidebar
         headings={headings}
         dateStr={dateStr}
@@ -73,6 +76,7 @@ const dateStr = post.data.date.toLocaleDateString('zh-CN', {
         chars={reading.chars}
         updatedStr={post.data.updated?.toLocaleDateString('zh-CN')}
         tags={getTags(tags)}
+        relatedPosts={relatedPosts}
       />
 
       <article>
@@ -135,14 +139,6 @@ const dateStr = post.data.date.toLocaleDateString('zh-CN', {
 
         <!-- 上下篇导航 -->
         <PostNavigation prev={prev} next={next} />
-
-        <!-- 相关文章 -->
-        <RelatedPosts
-          currentId={post.id}
-          currentTags={tags}
-          allPosts={allPosts}
-          limit={4}
-        />
       </article>
     </div>
   </div>

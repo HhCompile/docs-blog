@@ -1,11 +1,13 @@
 ---
 /**
- * 文章左侧 sticky 边栏
- * - 顶部：返回链接
- * - 中部：文章目录（吸顶）
- * - 底部：作者卡 / 文章元信息
+ * 文章左侧 sticky 边栏（v2）
+ * - 顶部：返回链接 + 阅读进度条
+ * - 上半：文章目录（吸顶，跟随滚动高亮）
+ * - 下半：文章元信息 / 标签 / 作者卡 / 相关文章
  */
 import Icon from './Icon.astro'
+import AuthorCard from './AuthorCard.astro'
+import type { CollectionEntry } from 'astro:content'
 
 export interface Heading {
   depth: number
@@ -20,25 +22,37 @@ export interface Props {
   chars: number
   updatedStr?: string
   tags: { id: string; name: string; color: string }[]
+  /** 相关文章（已在 [slug].astro 算好） */
+  relatedPosts?: CollectionEntry<'posts'>[]
 }
 
-const { headings, dateStr, readingLabel, chars, updatedStr, tags } = Astro.props
+const { headings, dateStr, readingLabel, chars, updatedStr, tags, relatedPosts = [] } = Astro.props
 const tocItems = headings.filter((h) => h.depth === 2 || h.depth === 3)
 ---
 
 <aside class="hidden xl:block sticky top-24 self-start max-h-[calc(100vh-7rem)] overflow-y-auto pr-2 text-sm">
-  <!-- 顶部：返回列表 -->
-  <a
-    href="/posts"
-    class="inline-flex items-center gap-1 text-gray-500 hover:text-brand-600 transition-colors mb-6"
-  >
-    <Icon name="arrow-left" size={14} />
-    返回列表
-  </a>
+  <!-- 顶部：返回 + 阅读进度条 -->
+  <div class="mb-4">
+    <a
+      href="/posts"
+      class="inline-flex items-center gap-1 text-gray-500 hover:text-brand-600 transition-colors text-xs"
+    >
+      <Icon name="arrow-left" size={12} />
+      返回列表
+    </a>
+    <!-- 阅读进度条（脚本动态更新宽度） -->
+    <div class="mt-2 h-0.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+      <div
+        id="reading-progress"
+        class="h-full bg-gradient-to-r from-brand-500 to-brand-700 transition-[width] duration-150"
+        style="width: 0%"
+      ></div>
+    </div>
+  </div>
 
   <!-- 目录 -->
   {tocItems.length > 0 && (
-    <div class="mb-6">
+    <div class="mb-5">
       <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
         <Icon name="format-list-bulleted" size={12} class="text-brand-600" />
         文章目录
@@ -103,6 +117,40 @@ const tocItems = headings.filter((h) => h.depth === 2 || h.depth === 3)
       </div>
     </div>
   )}
+
+  <!-- 作者卡 -->
+  <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-800">
+    <AuthorCard />
+  </div>
+
+  <!-- 相关文章（侧栏风格） -->
+  {relatedPosts.length > 0 && (
+    <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-800">
+      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+        <Icon name="book-open" size={12} class="text-brand-600" />
+        相关文章
+      </h3>
+      <ul class="space-y-2">
+        {relatedPosts.map((post) => (
+          <li>
+            <a
+              href={`/posts/${post.id}`}
+              class="block px-2 py-1.5 -mx-2 rounded hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors group"
+            >
+              <div class="text-xs font-medium text-gray-800 dark:text-gray-200 line-clamp-2 group-hover:text-brand-600 transition-colors">
+                {post.data.title}
+              </div>
+              {post.data.description && (
+                <div class="text-[10px] text-gray-500 line-clamp-1 mt-0.5">
+                  {post.data.description}
+                </div>
+              )}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
 </aside>
 
 <script>
@@ -117,8 +165,6 @@ const tocItems = headings.filter((h) => h.depth === 2 || h.depth === 3)
     const headings = Array.from(map.keys())
       .map((slug) => document.getElementById(slug))
       .filter((el): el is HTMLElement => Boolean(el))
-
-    if (headings.length === 0) return
 
     function activate(slug: string | null) {
       links.forEach((l) => {
@@ -162,9 +208,45 @@ const tocItems = headings.filter((h) => h.depth === 2 || h.depth === 3)
     if (location.hash) activate(location.hash.slice(1))
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initToc)
-  } else {
+  /** 阅读进度条：根据主内容滚动位置计算百分比 */
+  function initReadingProgress() {
+    const bar = document.getElementById('reading-progress')
+    if (!bar) return
+
+    // 找主内容容器（[slug].astro 的 <article>）
+    const article = document.querySelector<HTMLElement>('main article')
+    if (!article || !bar) return
+
+    let ticking = false
+    function update() {
+      const rect = article!.getBoundingClientRect()
+      const viewport = window.innerHeight
+      // 已读 = 从顶部到当前 viewport 顶部
+      // 总长 = article 总高度
+      const total = rect.height - viewport
+      const scrolled = -rect.top
+      const pct = total > 0 ? Math.min(100, Math.max(0, (scrolled / total) * 100)) : 0
+      bar!.style.width = `${pct}%`
+      ticking = false
+    }
+
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(update)
+        ticking = true
+      }
+    }, { passive: true })
+    update()
+  }
+
+  function init() {
     initToc()
+    initReadingProgress()
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init)
+  } else {
+    init()
   }
 </script>

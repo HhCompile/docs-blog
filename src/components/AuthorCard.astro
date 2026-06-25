@@ -1,0 +1,71 @@
+---
+/**
+ * 作者卡片（侧栏底部）
+ * - 头像：基于作者名首字母生成渐变（无需外部头像服务）
+ * - 简介 + 社交链接：来自 site.config
+ *
+ * 后续可在 site.config 加 avatar_url 字段覆盖默认头像
+ */
+import Icon from './Icon.astro'
+import GithubIcon from './GithubIcon.astro'
+import siteConfig from '../data/site.config.mjs'
+
+// 头像首字母（中文取最后 1 个字，英文取首字母）
+const authorName = siteConfig.site_author
+const avatarText = authorName.length > 0
+  ? (/[一-龥]/.test(authorName)
+      ? authorName.slice(-1)
+      : authorName[0].toUpperCase())
+  : '?'
+
+const authorBio = siteConfig.site_description
+const githubUrl = siteConfig.github_url
+const siteUrl = siteConfig.site_url
+---
+
+<div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-900">
+  <a href="/about" class="block group">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-xl font-bold flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow">
+        {avatarText}
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-semibold group-hover:text-brand-600 transition-colors truncate">
+          {authorName}
+        </div>
+        <div class="text-xs text-gray-500">博客作者</div>
+      </div>
+    </div>
+    <p class="mt-3 text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+      {authorBio}
+    </p>
+  </a>
+  <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800 flex items-center gap-1">
+    <a
+      href={githubUrl}
+      target="_blank"
+      rel="noopener"
+      class="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-brand-600 transition-colors"
+      title="GitHub"
+    >
+      <GithubIcon size={12} />
+      <span>GitHub</span>
+    </a>
+    <a
+      href="/rss.xml"
+      class="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-brand-600 transition-colors"
+      title="RSS 订阅"
+    >
+      <Icon name="rss" size={12} />
+      <span>RSS</span>
+    </a>
+    <a
+      href="/about"
+      class="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-brand-600 transition-colors"
+      title="关于我"
+    >
+      <Icon name="bot" size={12} />
+      <span>关于</span>
+    </a>
+  </div>
+</div>
