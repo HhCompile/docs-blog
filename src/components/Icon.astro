@@ -1,89 +1,17 @@
 ---
 /**
  * Icon 组件（Astro 版本）
- * 统一 lucide-react 图标 API
+ * 底层用 astro-icon 渲染 Iconify SVG 集合
+ * - 服务端渲染：零运行时 JS
+ * - 1.5 万+ 图标可选
  *
  * 用法：
  *   <Icon name="search" class="text-lg" />
  *   <Icon name="arrow-right" size={20} />
  */
-import {
-  AlertCircle,
-  ArrowLeft,
-  ArrowRight,
-  BookOpen,
-  Bot,
-  Calendar,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  Copy,
-  Eraser,
-  FileSearch,
-  FileText,
-  Hash,
-  Home,
-  Link2,
-  List,
-  Loader2,
-  Menu,
-  Pencil,
-  RefreshCw,
-  Rss,
-  Search,
-  Send,
-  Map as Sitemap,
-  Square,
-  Sun,
-  Tag,
-  Tags,
-  X,
-} from 'lucide-react'
+import { Icon } from 'astro-icon/components'
 
-// 名称 → 组件映射
-const icons = {
-  'alert-circle': AlertCircle,
-  'arrow-left': ArrowLeft,
-  'arrow-right': ArrowRight,
-  'book-open': BookOpen,
-  bot: Bot,
-  calendar: Calendar,
-  check: Check,
-  'chevron-down': ChevronDown,
-  'chevron-up': ChevronUp,
-  clock: Clock,
-  copy: Copy,
-  'delete-sweep': Eraser,
-  'file-document-multiple': FileText,
-  'file-search': FileSearch,
-  'file-search-outline': FileSearch,
-  'text-search': FileSearch,
-  'format-list-bulleted': List,
-  home: Home,
-  'link-variant': Link2,
-  loading: Loader2,
-  menu: Menu,
-  pencil: Pencil,
-  refresh: RefreshCw,
-  rss: Rss,
-  search: Search,
-  send: Send,
-  sitemap: Sitemap,
-  stop: Square,
-  sun: Sun,
-  'tag-multiple': Tags,
-  tag: Tag,
-  text: FileText,
-  counter: Hash,
-  moon: Sun,
-  'weather-sunny': Sun,
-  'weather-night': Sun,
-  x: X,
-  close: X,
-} as const
-
-export type IconName = keyof typeof icons
+export type IconName = 'alert-circle' | 'arrow-left' | 'arrow-right' | 'book-open' | 'bot' | 'calendar' | 'check' | 'chevron-down' | 'chevron-up' | 'clock' | 'close' | 'copy' | 'counter' | 'delete-sweep' | 'file-document-multiple' | 'file-search' | 'file-search-outline' | 'format-list-bulleted' | 'github' | 'home' | 'link-variant' | 'loading' | 'menu' | 'moon' | 'pencil' | 'refresh' | 'rss' | 'search' | 'send' | 'sitemap' | 'stop' | 'sun' | 'tag-multiple' | 'tag' | 'text' | 'text-search' | 'weather-night' | 'weather-sunny' | 'x'
 
 export interface Props {
   name: IconName
@@ -93,14 +21,9 @@ export interface Props {
 }
 
 const { name, size = 18, class: className = '', strokeWidth = 2 } = Astro.props
-const Component = icons[name] as any
+// 命名空间映射：github 在 simple-icons，其他默认 lucide
+const iconName =
+  name.includes(':') ? name : name === 'github' ? 'simple-icons:github' : `lucide:${name}`
 ---
 
-{Component && (
-  <Component
-    size={size}
-    strokeWidth={strokeWidth}
-    class={className}
-    aria-hidden="true"
-  />
-)}
+<Icon name={iconName} size={size} class={className} aria-hidden="true" />
