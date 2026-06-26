@@ -1,42 +1,119 @@
 ---
 export const prerender = true
 import BaseLayout from '../layouts/BaseLayout.astro'
+import Icon from '../components/Icon.astro'
+import GithubIcon from '../components/GithubIcon.astro'
 import siteConfig from '../data/site.config.mjs'
 ---
 
-<BaseLayout title="关于" description={`关于 ${siteConfig.site_author}`}>
+<BaseLayout title="关于" description={`关于 ${siteConfig.site_author} - 技术博客`}>
   <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <h1 class="text-4xl font-bold mb-6">关于我</h1>
+    <header class="mb-10">
+      <h1 class="text-4xl font-bold tracking-tight mb-3">关于本站</h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400">
+        一个聚焦 <strong class="text-brand-600">前端 · Python · FastAPI</strong> 的个人技术站。
+      </p>
+    </header>
 
     <div class="prose dark:prose-invert max-w-none">
       <p>
-        你好，我是 <strong>{siteConfig.site_author}</strong>。欢迎来到我的个人博客。
+        你好，我是 <strong>{siteConfig.site_author}</strong>。这里记录我在前后端开发、AI 工具应用与工程实践中的所思所得。
       </p>
 
-      <p>这里记录我在前端开发、技术学习与生活中的所思所感。</p>
+      <p>
+        本站既不是教程站也不是新闻站，更像是一份<strong>可检索的工程笔记</strong>——遇到的问题、踩过的坑、最终落地的方案，整理成文以便日后回溯。如果其中某篇恰好帮到了你，那是意外之喜。
+      </p>
 
-      <h2>技术栈</h2>
+      <h2>🎯 关注方向</h2>
       <ul>
-        <li><strong>框架</strong>: Astro / React / Vue</li>
-        <li><strong>语言</strong>: TypeScript / JavaScript</li>
-        <li><strong>样式</strong>: UnoCSS / Tailwind</li>
-        <li><strong>部署</strong>: Vercel / Cloudflare Pages / Netlify</li>
+        <li><strong>现代前端工程</strong>：Astro / React / TypeScript / 构建工具链</li>
+        <li><strong>Python 后端开发</strong>：FastAPI / 异步编程 / 类型系统</li>
+        <li><strong>AI Native 工具</strong>：Claude Code / Prompt Engineering / Agent 工作流</li>
+        <li><strong>个人效率基建</strong>：博客 / 知识库 / 自动化脚本</li>
       </ul>
 
-      <h2>本站特点</h2>
+      <h2>🛠️ 技术栈</h2>
+
+      <h3>前端</h3>
       <ul>
-        <li>⚡ <strong>极致性能</strong>: Astro 默认零 JS，按需加载</li>
-        <li>🔍 <strong>SEO 友好</strong>: 自动生成 sitemap、RSS、JSON-LD 结构化数据</li>
-        <li>🏷️ <strong>标签系统</strong>: 12 个预定义标签，支持标签云与按标签筛选</li>
-        <li>📤 <strong>一键分发</strong>: 支持自动发布到 CSDN / 掘金</li>
-        <li>🌗 <strong>深色模式</strong>: 跟随系统或手动切换</li>
+        <li><strong>框架</strong>：Astro 6（Islands 架构，零 JS 默认） + React 19</li>
+        <li><strong>样式</strong>：Tailwind CSS 4（utility-first，按需生成）</li>
+        <li><strong>类型</strong>：TypeScript 6（strict mode）</li>
+        <li><strong>内容</strong>：MDX + Zod Schema 严格校验 frontmatter</li>
+        <li><strong>搜索</strong>：Orama（客户端全文索引，中英文加权）</li>
+        <li><strong>状态 / 表单</strong>：React Hooks + 自研 Hooks（useDebounce 等）</li>
       </ul>
 
-      <h2>联系方式</h2>
+      <h3>后端 / Python</h3>
       <ul>
-        <li>GitHub: <a href={siteConfig.github_url} target="_blank" rel="noopener">{siteConfig.github_url}</a></li>
-        <li>RSS: <a href="/rss.xml">/rss.xml</a></li>
+        <li><strong>Web 框架</strong>：FastAPI（类型驱动 + 自动 OpenAPI 文档）</li>
+        <li><strong>异步运行时</strong>：asyncio + uvicorn</li>
+        <li><strong>数据校验</strong>：Pydantic v2（与 FastAPI 一脉相承）</li>
+        <li><strong>ORM</strong>：SQLAlchemy 2.0（async 模式） / SQLModel</li>
+        <li><strong>任务队列</strong>：Celery / Arq（按需）</li>
+        <li><strong>测试</strong>：pytest + httpx（异步 API 测试）</li>
       </ul>
+
+      <h3>AI 工具链</h3>
+      <ul>
+        <li><strong>主力 IDE / Agent</strong>：<a href="https://www.anthropic.com/claude-code" target="_blank" rel="noopener">Claude Code</a>（Anthropic 官方 CLI，agentic workflow + tool use）</li>
+        <li><strong>本地 LLM 推理</strong>：LM Studio（OpenAI 兼容 API + 向量检索 RAG）</li>
+        <li><strong>Embedding</strong>：text-embedding-nomic-embed-text-v1.5 / bge-m3</li>
+        <li><strong>提示词工程</strong>：few-shot / chain-of-thought / structured output</li>
+      </ul>
+
+      <h3>工程 / 部署</h3>
+      <ul>
+        <li><strong>版本控制</strong>：Git + GitHub</li>
+        <li><strong>CI/CD</strong>：GitHub Actions + <a href="https://github.com/googleapis/release-please" target="_blank" rel="noopener">release-please</a>（conventional commits → 自动化版本）</li>
+        <li><strong>包管理</strong>：pnpm（前端）/ uv（Python）</li>
+        <li><strong>代码质量</strong>：TypeScript strict / ESLint / tsc --noEmit / pre-commit</li>
+        <li><strong>部署</strong>：Node standalone / Docker（反代 + HTTPS）</li>
+      </ul>
+
+      <h2>✨ 本站特点</h2>
+      <ul>
+        <li>⚡ <strong>极致性能</strong>：Astro Islands 架构，文章页默认 0 JS，按需水合</li>
+        <li>🔍 <strong>全文搜索</strong>：客户端索引（Orama），<kbd>⌘K</kbd> 唤起命令面板</li>
+        <li>🤖 <strong>AI 问答</strong>：基于本地大模型 + RAG（向量检索博客内容），支持多轮对话</li>
+        <li>🛡️ <strong>安全优先</strong>：CSP / API 限流 / HMAC 鉴权 / 真实 IP 解析</li>
+        <li>📊 <strong>错误监控</strong>：客户端 4 类错误捕获 + /admin 后台查看</li>
+        <li>🏷️ <strong>标签系统</strong>：单一真源（<code>tags.json</code>）+ zod 严格校验引用</li>
+        <li>🌗 <strong>深色模式</strong>：跟随系统或手动切换</li>
+        <li>📤 <strong>一键分发</strong>：支持自动发布到 CSDN / 掘金</li>
+      </ul>
+
+      <h2>💼 工作方式</h2>
+      <p>
+        我个人偏好 <strong>AI Native 工作流</strong>——用 Claude Code 处理重复性任务（代码生成 / 重构 / 测试编写 / 文档整理），
+        自己聚焦在<strong>问题定义、方案决策、关键代码 review</strong>。这种分工让我能把精力放在真正需要判断力的地方。
+      </p>
+      <p>
+        如果你也用 Claude Code，可以看看我整理的实践笔记；如果有不同看法，欢迎在评论区或 GitHub 交流。
+      </p>
+
+      <h2>📬 联系方式</h2>
+      <ul>
+        <li>
+          <GithubIcon size={14} class="inline-block align-text-bottom mr-1" />
+          GitHub: <a href={siteConfig.github_url} target="_blank" rel="noopener">{siteConfig.github_url}</a>
+        </li>
+        <li>
+          <Icon name="rss" size={14} class="inline-block align-text-bottom mr-1" />
+          RSS: <a href="/rss.xml">/rss.xml</a>
+        </li>
+        <li>
+          <Icon name="bot" size={14} class="inline-block align-text-bottom mr-1" />
+          文章页右下角 <strong>AI 助手</strong>（基于本地大模型 + RAG）
+        </li>
+      </ul>
+
+      <hr />
+
+      <p class="text-sm text-gray-500">
+        如果你发现文章中有错误或有不同见解，欢迎通过 GitHub Issue / PR 指正。
+        本站所有内容均为个人见解，与雇主无关。
+      </p>
     </div>
   </article>
 </BaseLayout>
