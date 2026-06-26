@@ -5,6 +5,9 @@ import mdx from '@astrojs/mdx'
 import sitemap from '@astrojs/sitemap'
 import node from '@astrojs/node'
 import tailwindcss from '@tailwindcss/vite'
+import compress from 'astro-compress'
+import remarkGfm from 'remark-gfm'
+import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 
 import siteConfig from './src/data/site.config.mjs'
 
@@ -21,12 +24,17 @@ export default defineConfig({
       // 排除后台路由（不被搜索引擎索引）
       filter: (page) => !page.includes('/admin/') && !page.includes('/admin'),
     }),
+    compress(),
   ],
   markdown: {
     shikiConfig: {
       themes: { light: 'github-light', dark: 'github-dark' },
       wrap: true,
     },
+    remarkPlugins: [remarkGfm],
+    rehypePlugins: [
+      [rehypeAutolinkHeadings, { behavior: 'append' }],
+    ],
   },
   build: {
     format: 'directory',

@@ -1,0 +1,16 @@
+# Lefthook git hooks
+# 文档：https://github.com/evilmartians/lefthook
+#
+# 安装：lefthook install
+# 跳过（紧急 commit）：git commit --no-verify
+
+pre-commit:
+  parallel: true
+  commands:
+    typecheck:
+      glob: "*.{ts,tsx,astro}"
+      run: pnpm exec tsc --noEmit
+
+    astro-check:
+      glob: "*.{astro,ts,tsx,md,mdx}"
+      run: pnpm exec astro check

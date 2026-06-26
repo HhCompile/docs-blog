@@ -1,58 +1,93 @@
 /** @jsxImportSource react */
 /**
  * Icon 组件（React 岛版本）
- * 底层用 astro-icon 渲染 Iconify SVG 集合
- * - 服务端预渲染：零运行时 JS
- * - 兼容旧 lucide API
+ * 用途：在 React 岛里使用（PostAIAssistant / AISummary / PostListFilter）
  */
-import { Icon as AstroIcon } from 'astro-icon/components'
+import {
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  Bot,
+  Calendar,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  Copy,
+  Eraser,
+  FileSearch,
+  FileText,
+  Hash,
+  Home,
+  Link2,
+  List,
+  Loader2,
+  Menu,
+  Pencil,
+  RefreshCw,
+  Rss,
+  Search,
+  Send,
+  Map as Sitemap,
+  Square,
+  Sun,
+  Tag,
+  Tags,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 
-export type IconName =
-  | 'alert-circle'
-  | 'arrow-left'
-  | 'arrow-right'
-  | 'book-open'
-  | 'bot'
-  | 'calendar'
-  | 'check'
-  | 'chevron-down'
-  | 'chevron-up'
-  | 'clock'
-  | 'close'
-  | 'copy'
-  | 'counter'
-  | 'delete-sweep'
-  | 'file-document-multiple'
-  | 'file-search'
-  | 'file-search-outline'
-  | 'format-list-bulleted'
-  | 'github'
-  | 'home'
-  | 'link-variant'
-  | 'loading'
-  | 'menu'
-  | 'moon'
-  | 'pencil'
-  | 'refresh'
-  | 'rss'
-  | 'search'
-  | 'send'
-  | 'sitemap'
-  | 'stop'
-  | 'sun'
-  | 'tag-multiple'
-  | 'tag'
-  | 'text'
-  | 'text-search'
-  | 'weather-night'
-  | 'weather-sunny'
-  | 'x'
+const icons: Record<string, LucideIcon | undefined> = {
+  'alert-circle': AlertCircle,
+  'arrow-left': ArrowLeft,
+  'arrow-right': ArrowRight,
+  'book-open': BookOpen,
+  bot: Bot,
+  calendar: Calendar,
+  check: Check,
+  'chevron-down': ChevronDown,
+  'chevron-up': ChevronUp,
+  clock: Clock,
+  copy: Copy,
+  'delete-sweep': Eraser,
+  'file-document-multiple': FileText,
+  'file-search': FileSearch,
+  'file-search-outline': FileSearch,
+  'text-search': FileSearch,
+  'format-list-bulleted': List,
+  github: undefined, // 品牌图标用 GithubIcon.astro
+  home: Home,
+  'link-variant': Link2,
+  loading: Loader2,
+  menu: Menu,
+  pencil: Pencil,
+  refresh: RefreshCw,
+  rss: Rss,
+  search: Search,
+  send: Send,
+  sitemap: Sitemap,
+  stop: Square,
+  sun: Sun,
+  'tag-multiple': Tags,
+  tag: Tag,
+  text: FileText,
+  counter: Hash,
+  moon: Sun,
+  'weather-sunny': Sun,
+  'weather-night': Sun,
+  x: X,
+  close: X,
+}
+
+export type IconName = keyof typeof icons
 
 export interface IconProps {
   name: IconName
   size?: number
   strokeWidth?: number
   className?: string
+  /** 用作动画图标（如 loading） */
   spin?: boolean
 }
 
@@ -63,13 +98,13 @@ export default function Icon({
   className = '',
   spin = false,
 }: IconProps) {
-  const iconName =
-    name.includes(':') ? name : name === 'github' ? 'simple-icons:github' : `lucide:${name}`
+  const Component = icons[name]
+  if (!Component) return null
   return (
-    <AstroIcon
-      name={iconName}
+    <Component
       size={size}
-      class={`${className} ${spin || name === 'loading' ? 'animate-spin' : ''}`}
+      strokeWidth={strokeWidth}
+      className={`${className} ${spin || name === 'loading' ? 'animate-spin' : ''}`}
       aria-hidden="true"
     />
   )
