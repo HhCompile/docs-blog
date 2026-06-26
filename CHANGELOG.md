@@ -5,6 +5,14 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
+## [1.3.0](https://github.com/HhCompile/docs-blog/compare/docs-blog-v1.2.0...docs-blog-v1.3.0) (2026-06-26)
+
+
+### Features
+
+* 重写 about 页面为技术站定位 ([41131ff](https://github.com/HhCompile/docs-blog/commit/41131ffb3e92e9380abaf9b03dd6d41572106b9e))
+* 首页升级为左 sidebar + masonry 卡片墙（借鉴 moewah） ([fd04232](https://github.com/HhCompile/docs-blog/commit/fd04232e7d411c91174ab9206a658f44b5939268))
+
 ## [1.2.0](https://github.com/HhCompile/docs-blog/compare/docs-blog-v1.1.0...docs-blog-v1.2.0) (2026-06-25)
 
 
