@@ -1,0 +1,128 @@
+---
+/**
+ * 首页左侧固定 Sidebar
+ * - 站标 + 简介
+ * - 分类导航（从所有 tag 动态生成）
+ * - 友链
+ * - 版权信息
+ */
+import Icon from './Icon.astro'
+import GithubIcon from './GithubIcon.astro'
+import { listTags, countPostsByTag } from '../data/tag-helpers'
+import { getCollection } from 'astro:content'
+import siteConfig from '../data/site.config.mjs'
+
+// 拿全部文章用于"最近更新"和"分类计数"
+const allPosts = (await getCollection('posts', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+
+const tagCounts = countPostsByTag(allPosts, (p) => p.data.tags ?? [])
+const tagsWithCount = listTags()
+  .map((t) => ({ ...t, count: tagCounts.get(t.id) ?? 0 }))
+  .filter((t) => t.count > 0)
+  .sort((a, b) => b.count - a.count)
+  .slice(0, 8) // 侧栏只显示前 8 个
+
+const recentPosts = allPosts.slice(0, 5)
+const githubUrl = siteConfig.github_url
+---
+
+<aside class="hidden xl:block w-60 flex-shrink-0 sticky top-24 self-start max-h-[calc(100vh-7rem)] overflow-y-auto pr-2 text-sm">
+
+  <!-- 站标 + 简介 -->
+  <div class="mb-6">
+    <div class="flex items-center gap-2 mb-2">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-base font-bold shadow-sm">
+        {siteConfig.site_title[0]}
+      </div>
+      <div class="font-semibold text-base">{siteConfig.site_title}</div>
+    </div>
+    <p class="text-xs text-gray-500 leading-relaxed line-clamp-3">
+      {siteConfig.site_description}
+    </p>
+  </div>
+
+  <!-- 分类导航 -->
+  {tagsWithCount.length > 0 && (
+    <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-800">
+      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+        <Icon name="tag-multiple" size={12} class="text-brand-600" />
+        分类
+      </h3>
+      <ul class="space-y-1">
+        {tagsWithCount.map((t) => (
+          <li>
+            <a
+              href={`/tags/${t.id}`}
+              class="flex items-center justify-between px-2 py-1 -mx-2 rounded text-gray-600 dark:text-gray-400 hover:text-brand-600 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+            >
+              <span class="flex items-center gap-1.5 truncate">
+                <span
+                  class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  style={`background-color: ${t.color};`}
+                ></span>
+                <span class="truncate text-xs">{t.name}</span>
+              </span>
+              <span class="text-[10px] text-gray-400 flex-shrink-0">{t.count}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+
+  <!-- 最近更新 -->
+  {recentPosts.length > 0 && (
+    <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-800">
+      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+        <Icon name="clock" size={12} class="text-brand-600" />
+        最近更新
+      </h3>
+      <ul class="space-y-2">
+        {recentPosts.map((post) => (
+          <li>
+            <a
+              href={`/posts/${post.id}`}
+              class="block px-2 py-1.5 -mx-2 rounded hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors group"
+            >
+              <div class="text-xs font-medium text-gray-800 dark:text-gray-200 line-clamp-2 group-hover:text-brand-600 transition-colors">
+                {post.data.title}
+              </div>
+              <div class="text-[10px] text-gray-400 mt-0.5">
+                {post.data.date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+
+  <!-- 友链 / 社交 -->
+  <div class="pt-4 border-t border-gray-200 dark:border-gray-800">
+    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+      <Icon name="link-variant" size={12} class="text-brand-600" />
+      友链
+    </h3>
+    <div class="space-y-1.5 text-xs">
+      <a href={githubUrl} target="_blank" rel="noopener" class="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-brand-600 transition-colors">
+        <GithubIcon size={12} />
+        <span>GitHub</span>
+      </a>
+      <a href="/rss.xml" class="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-brand-600 transition-colors">
+        <Icon name="rss" size={12} />
+        <span>RSS</span>
+      </a>
+      <a href="/about" class="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-brand-600 transition-colors">
+        <Icon name="bot" size={12} />
+        <span>关于</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 版权 -->
+  <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-800 text-[10px] text-gray-400 leading-relaxed">
+    © {new Date().getFullYear()} {siteConfig.site_author}<br/>
+    基于 Astro 构建
+  </div>
+</aside>

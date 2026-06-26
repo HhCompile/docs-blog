@@ -42,3 +42,7 @@ before-*.png
 after-*.png
 
 sidebar-*.png
+
+# 临时截图
+home-*.png
+moewah-*.png

@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions'
 import BaseHead from '../components/BaseHead.astro'
 import Header from '../components/Header.astro'
 import Footer from '../components/Footer.astro'
@@ -21,6 +22,8 @@ const props = Astro.props
 <html lang="zh-CN">
   <head>
     <BaseHead {...props} />
+    <!-- 页面切换动画（Astro 6 原生 View Transitions API，零依赖） -->
+    <ClientRouter />
   </head>
   <body class="min-h-screen flex flex-col antialiased">
     <Header />
