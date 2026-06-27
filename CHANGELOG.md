@@ -5,6 +5,15 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
+## [1.4.0](https://github.com/HhCompile/docs-blog/compare/docs-blog-v1.3.0...docs-blog-v1.4.0) (2026-06-27)
+
+
+### Features
+
+* pretty-code 复制按钮 + 深色背景 ([acf0832](https://github.com/HhCompile/docs-blog/commit/acf0832c56e6d56c99723f3f9d496e85174484c5))
+* 接入 Umami 隐私分析 ([ef3730d](https://github.com/HhCompile/docs-blog/commit/ef3730d0be2012b537c484f23ec1b6489a9df48e))
+* 集成 astro-icon 替换 lucide-react（Astro 端） ([7008a27](https://github.com/HhCompile/docs-blog/commit/7008a27ccf4166ad842d36fe6135c434f0f9957d))
+
 ## [1.3.0](https://github.com/HhCompile/docs-blog/compare/docs-blog-v1.2.0...docs-blog-v1.3.0) (2026-06-26)
 
 
