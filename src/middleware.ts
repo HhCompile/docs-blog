@@ -21,13 +21,19 @@ function isProtectedAdmin(pathname: string): boolean {
 }
 
 /** CSP 策略：限制 script/style/img/connect 源，允许 LM Studio 本地服务 */
+/** Umami 域名从 env 注入（PUBLIC_UMAMI_URL），默认留 Umami Cloud */
+const umamiHost = process.env.PUBLIC_UMAMI_URL
+  ? new URL(process.env.PUBLIC_UMAMI_URL).origin
+  : 'https://cloud.umami.is'
+
 const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self' data:",
-  "connect-src 'self' http://localhost:1234 ws://localhost:1234",
+  // Umami + LM Studio + 自托管 umami
+  `connect-src 'self' http://localhost:1234 ws://localhost:1234 https://*.umami.is ${umamiHost}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

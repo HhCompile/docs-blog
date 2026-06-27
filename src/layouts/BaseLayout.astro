@@ -4,6 +4,7 @@ import BaseHead from '../components/BaseHead.astro'
 import Header from '../components/Header.astro'
 import Footer from '../components/Footer.astro'
 import SearchProvider from './SearchProvider.astro'
+import siteConfig from '../data/site.config.mjs'
 
 export interface Props {
   title: string
@@ -16,6 +17,8 @@ export interface Props {
 }
 
 const props = Astro.props
+const umamiId = import.meta.env.PUBLIC_UMAMI_ID
+const umamiUrl = import.meta.env.PUBLIC_UMAMI_URL
 ---
 
 <!doctype html>
@@ -24,6 +27,18 @@ const props = Astro.props
     <BaseHead {...props} />
     <!-- 页面切换动画（Astro 6 原生 View Transitions API，零依赖） -->
     <ClientRouter />
+
+    {/* Umami 隐私分析：自托管或 umami.is 云端
+        配置：PUBLIC_UMAMI_URL + PUBLIC_UMAMI_ID 两个环境变量 */}
+    {umamiId && umamiUrl && (
+      <script
+        is:inline
+        async
+        defer
+        data-website-id={umamiId}
+        src={`${umamiUrl}/script.js`}
+      />
+    )}
   </head>
   <body class="min-h-screen flex flex-col antialiased">
     <Header />
