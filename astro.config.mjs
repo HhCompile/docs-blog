@@ -8,6 +8,7 @@ import tailwindcss from '@tailwindcss/vite'
 import compress from 'astro-compress'
 import remarkGfm from 'remark-gfm'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
+import rehypePrettyCode from 'rehype-pretty-code'
 
 import siteConfig from './src/data/site.config.mjs'
 
@@ -27,13 +28,18 @@ export default defineConfig({
     compress(),
   ],
   markdown: {
-    shikiConfig: {
-      themes: { light: 'github-light', dark: 'github-dark' },
-      wrap: true,
-    },
+    // 禁用默认 Shiki 让 rehype-pretty-code 接管
+    syntaxHighlight: false,
     remarkPlugins: [remarkGfm],
     rehypePlugins: [
       [rehypeAutolinkHeadings, { behavior: 'append' }],
+      [
+        rehypePrettyCode,
+        {
+          theme: { light: 'github-light', dark: 'github-dark' },
+          keepBackground: false,
+        },
+      ],
     ],
   },
   build: {
