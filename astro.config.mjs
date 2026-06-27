@@ -6,6 +6,7 @@ import sitemap from '@astrojs/sitemap'
 import node from '@astrojs/node'
 import tailwindcss from '@tailwindcss/vite'
 import compress from 'astro-compress'
+import astroIcon from 'astro-icon'
 import remarkGfm from 'remark-gfm'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypePrettyCode from 'rehype-pretty-code'
@@ -26,6 +27,10 @@ export default defineConfig({
       filter: (page) => !page.includes('/admin/') && !page.includes('/admin'),
     }),
     compress(),
+    astroIcon({
+      // 不传 include：自动从 @iconify-json/* 已装包加载
+      // 当前装的有：lucide（UI 图标）+ simple-icons（品牌）
+    }),
   ],
   markdown: {
     // 禁用默认 Shiki 让 rehype-pretty-code 接管
