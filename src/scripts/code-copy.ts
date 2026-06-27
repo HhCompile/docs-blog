@@ -4,7 +4,7 @@
  * - 零依赖，~1KB
  */
 
-function init() {
+function initCodeCopy() {
   // 找所有未被包装的 pre
   document.querySelectorAll<HTMLPreElement>('article.prose pre, .prose pre').forEach((pre) => {
     if (pre.parentElement?.classList.contains('code-block-wrapper')) return
@@ -55,13 +55,13 @@ function init() {
 // 首次执行 + 监听动态插入
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    init()
+    initCodeCopy()
     // 监听 Astro 视图过渡（如有）
-    const obs = new MutationObserver(() => init())
+    const obs = new MutationObserver(() => initCodeCopy())
     obs.observe(document.body, { childList: true, subtree: true })
   })
 } else {
-  init()
-  const obs = new MutationObserver(() => init())
+  initCodeCopy()
+  const obs = new MutationObserver(() => initCodeCopy())
   obs.observe(document.body, { childList: true, subtree: true })
 }

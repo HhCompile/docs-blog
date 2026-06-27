@@ -148,6 +148,7 @@ const relatedPosts = getRelatedPosts(post.id, tags, allPosts, 3)
 </BaseLayout>
 
 <script>
-  // 代码块复制按钮
+  // 代码块复制按钮（原始 <pre> + rehype-pretty-code 包装的 figure）
   import '../../scripts/code-copy.ts'
+  import '../../scripts/code-copy-pretty.ts'
 </script>
