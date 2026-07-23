@@ -8,6 +8,8 @@ import tailwindcss from '@tailwindcss/vite'
 import compress from 'astro-compress'
 import astroIcon from 'astro-icon'
 import remarkGfm from 'remark-gfm'
+import { remarkObsidianLinks } from './src/lib/remark-obsidian-links'
+import { remarkStripImages } from './src/lib/remark-strip-images'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypePrettyCode from 'rehype-pretty-code'
 
@@ -35,7 +37,7 @@ export default defineConfig({
   markdown: {
     // 禁用默认 Shiki 让 rehype-pretty-code 接管
     syntaxHighlight: false,
-    remarkPlugins: [remarkGfm],
+    remarkPlugins: [remarkGfm, remarkObsidianLinks, remarkStripImages],
     rehypePlugins: [
       [rehypeAutolinkHeadings, { behavior: 'append' }],
       [

@@ -198,7 +198,7 @@ export default function AISummary({ slug, title, content, initialSummary }: AISu
           </span>
           {status === 'loading' || status === 'regenerating' ? (
             <span className="text-xs text-gray-500 flex items-center gap-1">
-              <Icon name="loading" size={12} />
+              <Icon name="loader" size={12} />
               生成中
             </span>
           ) : source === 'build' ? (

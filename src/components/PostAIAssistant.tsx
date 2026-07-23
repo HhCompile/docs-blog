@@ -4,6 +4,7 @@ import Icon from './Icon'
 
 export interface PostAIAssistantProps {
   postTitle: string
+  collection?: 'posts' | 'notes'
 }
 
 interface ChatMessage {
@@ -60,7 +61,7 @@ function saveHistory(history: ChatHistory) {
  * 形态：右下角小气泡（FAB）→ 点击展开右侧浮窗
  * 能力：流式打字机回答，多轮对话，按文章隔离持久化（7 天）
  */
-export default function PostAIAssistant({ postTitle }: PostAIAssistantProps) {
+export default function PostAIAssistant({ postTitle, collection = 'posts' }: PostAIAssistantProps) {
   const [open, setOpen] = useState(false)
   const [question, setQuestion] = useState('')
   const [streaming, setStreaming] = useState(false)
@@ -154,6 +155,7 @@ export default function PostAIAssistant({ postTitle }: PostAIAssistantProps) {
         body: JSON.stringify({
           messages: [{ role: 'user', content: q }],
           useRag: true,
+          collection,
         }),
         signal: controller.signal,
       })

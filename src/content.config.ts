@@ -40,4 +40,24 @@ const posts = defineCollection({
     }),
 })
 
-export const collections = { posts }
+// KnowledgeBase 笔记集合（只读引用，不发布到外部平台）
+const notes = defineCollection({
+  loader: glob({
+    pattern: [
+      '02-项目/**/*.md',
+      '03-前端/**/*.md',
+      '00-收件箱/**/*.md',
+      '*.md',
+      // 排除 Obsidian 内部文件（# 开头的文件）
+      '!**/#*',
+    ],
+    base: '/Users/hh/www/KnowledgeBase',
+  }),
+  schema: z.object({
+    title: z.string().optional(),
+    date: z.coerce.date().optional(),
+    tags: z.array(z.string()).optional().default([]),
+  }),
+})
+
+export const collections = { posts, notes }

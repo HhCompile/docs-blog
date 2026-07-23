@@ -1,0 +1,109 @@
+<h2>shhbase.cn 当前站点总览</h2>
+<p class="subtitle">Astro + React · 淡蓝色调 · Soft Aurora 背景 · GitHub: HhCompile</p>
+
+<div class="section">
+  <h3>现有页面与模块</h3>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+    <div class="option" style="margin:0">
+      <div class="content">
+        <h3>首页</h3>
+        <p style="font-size:13px;color:#64748b">3个服务卡片 + 最新文章列表</p>
+      </div>
+    </div>
+    <div class="option" style="margin:0">
+      <div class="content">
+        <h3>文章 /posts</h3>
+        <p style="font-size:13px;color:#64748b">3篇技术文章 · RSS · 标签 · 归档</p>
+      </div>
+    </div>
+    <div class="option" style="margin:0">
+      <div class="content">
+        <h3>笔记 /notes</h3>
+        <p style="font-size:13px;color:#64748b">独立笔记子站</p>
+      </div>
+    </div>
+    <div class="option" style="margin:0">
+      <div class="content">
+        <h3>任务 /tasks</h3>
+        <p style="font-size:13px;color:#64748b">定时任务展示页</p>
+      </div>
+    </div>
+    <div class="option" style="margin:0">
+      <div class="content">
+        <h3>关于 /about</h3>
+        <p style="font-size:13px;color:#64748b">个人介绍</p>
+      </div>
+    </div>
+    <div class="option" style="margin:0">
+      <div class="content">
+        <h3>管理后台</h3>
+        <p style="font-size:13px;color:#64748b">Cron 管理 · 错误监控 · AI 问答</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>首页现状</h3>
+  <div class="mockup">
+    <div class="mockup-header">当前首页布局</div>
+    <div class="mockup-body">
+      <div style="background:linear-gradient(135deg,#3b82f6,#818cf8);padding:48px 24px;text-align:center;color:#fff;border-radius:8px 8px 0 0">
+        <div style="font-size:28px;font-weight:700">孙先生的技术日志</div>
+        <div style="margin-top:8px;opacity:0.8">SSR 模式下只有 3 个服务卡片 + 文章列表</div>
+      </div>
+      <div style="padding:24px">
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:180px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px">
+            <div style="font-size:20px;margin-bottom:4px">📝</div>
+            <div style="font-weight:600">博客</div>
+            <div style="font-size:12px;color:#94a3b8">文章、笔记与标签</div>
+          </div>
+          <div style="flex:1;min-width:180px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px">
+            <div style="font-size:20px;margin-bottom:4px">⏱</div>
+            <div style="font-weight:600">Cron Admin</div>
+            <div style="font-size:12px;color:#94a3b8">定时任务管理</div>
+          </div>
+          <div style="flex:1;min-width:180px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px">
+            <div style="font-size:20px;margin-bottom:4px">📋</div>
+            <div style="font-weight:600">Notes</div>
+            <div style="font-size:12px;color:#94a3b8">技术笔记</div>
+          </div>
+        </div>
+        <div style="margin-top:24px">
+          <div style="font-weight:600;margin-bottom:12px">最新文章</div>
+          <div style="background:#f1f5f9;border-radius:6px;padding:12px;margin-bottom:8px">为什么选择 Astro 构建博客</div>
+          <div style="background:#f1f5f9;border-radius:6px;padding:12px;margin-bottom:8px">UnoCSS 入门指南</div>
+          <div style="background:#f1f5f9;border-radius:6px;padding:12px">React Island 在 Astro 中的实践</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>现在帮我确认一下方向</h3>
+<p class="subtitle">你提到「入口项目需要设计功能设计和UI设计」，这里的入口项目是指：</p>
+
+<div class="options">
+  <div class="option" data-choice="homepage" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>博客首页重新设计</h3>
+      <p>把 shhbase.cn 首页做得更丰富，像一个真正的个人门户</p>
+    </div>
+  </div>
+  <div class="option" data-choice="separate" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>独立的 Landing Page 项目</h3>
+      <p>另起一个入口项目（如 hhcompile.com），作为个人品牌主页，链接到博客</p>
+    </div>
+  </div>
+  <div class="option" data-choice="both" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>两者都要</h3>
+      <p>博客首页升级 + 同时建一个独立入口站</p>
+    </div>
+  </div>
+</div>

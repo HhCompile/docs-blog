@@ -1,0 +1,54 @@
+---
+export const prerender = true
+import { getCollection } from 'astro:content'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+
+const allNotes = await getCollection('notes')
+const notes = allNotes.sort((a, b) => {
+  const da = a.data.date?.valueOf() ?? 0
+  const db = b.data.date?.valueOf() ?? 0
+  return db - da
+})
+
+// 按目录分组
+const groups = new Map<string, typeof notes>()
+for (const note of notes) {
+  const dir = note.id.split('/').slice(0, -1).join(' / ') || '根目录'
+  if (!groups.has(dir)) groups.set(dir, [])
+  groups.get(dir)!.push(note)
+}
+---
+
+<BaseLayout title="笔记" description="KnowledgeBase 笔记浏览">
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-3xl font-bold mb-2">笔记</h1>
+    <p class="text-gray-600 dark:text-gray-400 mb-8">
+      共 {notes.length} 篇 · 来自 KnowledgeBase
+    </p>
+
+    <div class="space-y-10">
+      {Array.from(groups.entries()).map(([dir, items]) => (
+        <section>
+          <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            {dir}
+          </h2>
+          <div class="space-y-1">
+            {items.map((note) => (
+              <a
+                href={`/notes/${note.id}`}
+                class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <span class="font-medium">{note.data.title || note.id.split('/').pop()?.replace('.md', '')}</span>
+                {note.data.date && (
+                  <span class="ml-3 text-xs text-gray-400">
+                    {note.data.date.toLocaleDateString('zh-CN')}
+                  </span>
+                )}
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

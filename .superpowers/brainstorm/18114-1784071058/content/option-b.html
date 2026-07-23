@@ -1,0 +1,113 @@
+<h2>方案 B：独立 Landing Page 项目</h2>
+<p class="subtitle">另起一个个人品牌主页项目，作为所有子站的总入口</p>
+
+<div class="section">
+  <h3>架构对比</h3>
+  <div class="split">
+    <div class="mockup">
+      <div class="mockup-header">现状：博客即入口</div>
+      <div class="mockup-body" style="text-align:center;padding:20px">
+        <div style="margin:20px auto;max-width:300px">
+          <div style="border:2px solid #3b82f6;border-radius:8px;padding:20px;background:#eff6ff">
+            <div style="font-weight:700">shhbase.cn</div>
+            <div style="font-size:12px;color:#64748b">博客 + 入口，二合一</div>
+            <div style="margin-top:12px;font-size:11px;color:#94a3b8">📝 文章 · ⏱ Cron · 📋 Notes</div>
+          </div>
+          <div style="font-size:11px;color:#64748b;margin-top:8px">访问者进来直接看到博客</div>
+        </div>
+      </div>
+    </div>
+    <div class="mockup">
+      <div class="mockup-header">方案 B：独立入口 + 博客分离</div>
+      <div class="mockup-body" style="text-align:center;padding:20px">
+        <div style="margin:20px auto;max-width:300px">
+          <div style="border:2px solid #8b5cf6;border-radius:8px;padding:20px;background:#f5f3ff">
+            <div style="font-weight:700">hhcompile.com</div>
+            <div style="font-size:12px;color:#7c3aed">个人门户入口</div>
+            <div style="margin-top:12px;font-size:11px;color:#94a3b8">个人介绍 · 项目展示 · 链接导航</div>
+          </div>
+          <div style="margin-top:8px">↓</div>
+          <div style="border:2px solid #3b82f6;border-radius:8px;padding:16px;background:#eff6ff;margin-top:8px">
+            <div style="font-weight:700">shhbase.cn</div>
+            <div style="font-size:12px;color:#64748b">纯博客</div>
+          </div>
+          <div style="font-size:11px;color:#64748b;margin-top:8px">入口 → 博客，各司其职</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>独立入口站可以放什么</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+    <div class="option" style="margin:0"><div class="content">
+      <h3>个人介绍</h3><p style="font-size:13px;color:#64748b">你是谁、做什么、技能栈</p>
+    </div></div>
+    <div class="option" style="margin:0"><div class="content">
+      <h3>项目展示</h3><p style="font-size:13px;color:#64748b">GitHub 项目卡片自动拉取</p>
+    </div></div>
+    <div class="option" style="margin:0"><div class="content">
+      <h3>子站导航</h3><p style="font-size:13px;color:#64748b">博客 / Notes / Cron / 其他服务</p>
+    </div></div>
+    <div class="option" style="margin:0"><div class="content">
+      <h3>GitHub 动态</h3><p style="font-size:13px;color:#64748b">实时展示 commit、star 等</p>
+    </div></div>
+    <div class="option" style="margin:0"><div class="content">
+      <h3>联系方式</h3><p style="font-size:13px;color:#64748b">Email / GitHub / 社交媒体</p>
+    </div></div>
+    <div class="option" style="margin:0"><div class="content">
+      <h3>文章精选</h3><p style="font-size:13px;color:#64748b">从博客抓取置顶/热门文章</p>
+    </div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>利弊</h3>
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>优点</h4>
+      <ul>
+        <li>入口站和博客职责分离，各自专注</li>
+        <li>入口站可以做更丰富的视觉设计（不限于博客框架）</li>
+        <li>换了博客也不影响入口站</li>
+        <li>hhcompile.com 作为个人品牌域名更直观</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>代价</h4>
+      <ul>
+        <li>需要额外一个域名（hhcompile.com）</li>
+        <li>两个项目需要分别维护和部署</li>
+        <li>入口站内容更新需要手动或自动化</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h3>你怎么看？</h3>
+<p class="subtitle">回到首页选一个方向吧</p>
+
+<div class="options">
+  <div class="option" data-choice="homepage" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>升级博客首页</h3>
+      <p>把 shhbase.cn 首页丰富化，零额外成本</p>
+    </div>
+  </div>
+  <div class="option" data-choice="separate" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>独立入口站</h3>
+      <p>新建 hhcompile.com，打造个人品牌门户</p>
+    </div>
+  </div>
+  <div class="option" data-choice="both" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>两者都要</h3>
+      <p>先升级博客首页，后续再做独立站</p>
+    </div>
+  </div>
+</div>

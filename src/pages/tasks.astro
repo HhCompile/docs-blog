@@ -1,0 +1,100 @@
+---
+export const prerender = true
+import BaseLayout from '../layouts/BaseLayout.astro'
+import TaskCard from '../components/TaskCard.astro'
+import Icon from '../components/Icon.astro'
+import type { TaskOutput } from '../components/TaskCard.astro'
+
+const tasks: TaskOutput[] = [
+  {
+    id: 1,
+    name: '知识库索引更新',
+    description: '每天凌晨重建 Obsidian 知识库的全文搜索索引，确保搜索内容实时准确',
+    schedule: '每天 03:00',
+    last_run: '2026-07-07T03:00:00',
+    next_run: '2026-07-08T03:00:00',
+    status: 'success',
+    output_summary: '索引更新完成 | 扫描文件: 1,247 | 新增: 12 | 更新: 3 | 耗时: 45s',
+  },
+  {
+    id: 2,
+    name: '博客 RSS 自动推送',
+    description: '检测新文章发布后自动推送到 CSDN、掘金等平台，扩大内容分发范围',
+    schedule: '每 30 分钟',
+    last_run: '2026-07-07T14:30:00',
+    next_run: '2026-07-07T15:00:00',
+    status: 'success',
+    output_summary: '检测到新文章 0 篇，跳过推送 | 已推送历史: 24 篇',
+  },
+  {
+    id: 3,
+    name: 'SSL 证书到期检查',
+    description: '每日检查 shhbase.cn 及子域名的 SSL 证书剩余有效期，到期前 14 天发送告警',
+    schedule: '每天 09:00',
+    last_run: '2026-07-07T09:00:00',
+    next_run: '2026-07-08T09:00:00',
+    status: 'success',
+    output_summary: 'shhbase.cn: 剩余 82 天 | api.shhbase.cn: 剩余 82 天 | 均正常，无需告警',
+  },
+  {
+    id: 4,
+    name: '数据库自动备份',
+    description: '每日备份 PostgreSQL 数据库到阿里云 OSS，保留最近 7 天快照',
+    schedule: '每天 04:00',
+    last_run: '2026-07-07T04:00:00',
+    next_run: '2026-07-08T04:00:00',
+    status: 'success',
+    output_summary: '备份完成 | 数据库: marvis_prod | 大小: 156MB | 上传 OSS 成功',
+  },
+  {
+    id: 5,
+    name: '日志归档与清理',
+    description: '每周日归档 Nginx 和系统日志，删除 30 天前的归档文件',
+    schedule: '每周日 02:00',
+    last_run: '2026-07-05T02:00:00',
+    next_run: '2026-07-12T02:00:00',
+    status: 'pending',
+    output_summary: '上次归档: nginx-access (1.2GB) + syslog (340MB) | 清理: 删除 3 份过期归档',
+  },
+]
+
+const statusCounts = {
+  success: tasks.filter(t => t.status === 'success').length,
+  failed: tasks.filter(t => t.status === 'failed').length,
+  running: tasks.filter(t => t.status === 'running').length,
+  pending: tasks.filter(t => t.status === 'pending').length,
+}
+---
+
+<BaseLayout
+  title="定时任务"
+  description="定时任务产出与运行状态一览"
+>
+  <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold mb-2">定时任务</h1>
+      <p class="text-gray-600 dark:text-gray-400 mb-2">
+        共 <strong class="text-brand-600">{tasks.length}</strong> 个任务 ·
+        <span class="text-green-600 dark:text-green-400"> 成功 {statusCounts.success}</span>
+        {statusCounts.failed > 0 && (<span class="text-red-600 dark:text-red-400"> · 失败 {statusCounts.failed}</span>)}
+        {statusCounts.running > 0 && (<span class="text-blue-600 dark:text-blue-400"> · 运行中 {statusCounts.running}</span>)}
+        {statusCounts.pending > 0 && (<span class="text-gray-500"> · 待执行 {statusCounts.pending}</span>)}
+      </p>
+
+    </div>
+
+    {tasks.length > 0 ? (
+      <div class="grid grid-cols-1 gap-4">
+        {tasks.map((task) => (
+          <TaskCard task={task} />
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-16">
+        <Icon name="list-todo" size={48} class="mx-auto text-gray-300 dark:text-gray-700 mb-4" />
+        <p class="text-gray-500 dark:text-gray-400">暂无任务数据</p>
+      </div>
+    )}
+
+  </section>
+</BaseLayout>

@@ -1,0 +1,4 @@
+{"type":"server-started","port":64157,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:64157","screen_dir":"/Users/hh/www/docs-blog/.superpowers/brainstorm/22169-1783798008/content","state_dir":"/Users/hh/www/docs-blog/.superpowers/brainstorm/22169-1783798008/state"}
+{"type":"screen-added","file":"/Users/hh/www/docs-blog/.superpowers/brainstorm/22169-1783798008/content/overview.html"}
+{"type":"screen-added","file":"/Users/hh/www/docs-blog/.superpowers/brainstorm/22169-1783798008/content/option-b.html"}
+{"type":"server-stopped","reason":"idle timeout"}

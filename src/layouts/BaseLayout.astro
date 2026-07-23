@@ -4,6 +4,7 @@ import BaseHead from '../components/BaseHead.astro'
 import Header from '../components/Header.astro'
 import Footer from '../components/Footer.astro'
 import SearchProvider from './SearchProvider.astro'
+import SoftAurora from '../components/SoftAurora'
 import siteConfig from '../data/site.config.mjs'
 
 export interface Props {
@@ -41,8 +42,9 @@ const umamiUrl = import.meta.env.PUBLIC_UMAMI_URL
     )}
   </head>
   <body class="min-h-screen flex flex-col antialiased">
+    <SoftAurora client:load />
     <Header />
-    <main class="flex-1">
+    <main class="flex-1 relative z-10">
       <slot />
     </main>
     <Footer />

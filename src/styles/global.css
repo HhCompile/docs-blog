@@ -1,18 +1,18 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* === 设计令牌：brand 绿色调 === */
+/* === 设计令牌：brand 淡蓝色调 === */
 @theme {
-  --color-brand-50: #f0fdf4;
-  --color-brand-100: #dcfce7;
-  --color-brand-200: #bbf7d0;
-  --color-brand-300: #86efac;
-  --color-brand-400: #4ade80;
-  --color-brand-500: #22c55e;
-  --color-brand-600: #16a34a;
-  --color-brand-700: #15803d;
-  --color-brand-800: #166534;
-  --color-brand-900: #14532d;
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
 
   --font-sans: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", Menlo, Monaco, Consolas, monospace;
@@ -182,9 +182,9 @@ html, body {
 }
 
 .pretty-copy-btn.copied {
-  background: rgba(34, 197, 94, 0.9);
+  background: rgba(59, 130, 246, 0.9);
   color: white;
-  border-color: rgba(34, 197, 94, 0.5);
+  border-color: rgba(59, 130, 246, 0.5);
   opacity: 1;
 }
 

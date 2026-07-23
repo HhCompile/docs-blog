@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  docs-blog:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: docs-blog
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=8080
+    ports:
+      - "8080:4321"
+    networks:
+      - shhbase-net
+
+networks:
+  shhbase-net:
+    external: true

@@ -87,7 +87,7 @@ export default function PostListFilter({ posts, allTags }: PostListFilterProps) 
       {/* 列表 */}
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
-          <Icon name="file-search-outline" size={40} className="mb-2 inline-block" />
+          <Icon name="file-search" size={40} className="mb-2 inline-block" />
           <p>没有匹配的文章</p>
         </div>
       ) : (

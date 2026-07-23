@@ -1,0 +1,16 @@
+node_modules
+.git
+.github
+.vscode
+.idea
+*.log
+.env
+.env.*
+!.env.example
+dist
+.cache
+.tmp
+.DS_Store
+Thumbs.db
+coverage
+.nyc_output

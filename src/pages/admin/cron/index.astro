@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import CronManager from '../../../components/cron/CronManager.tsx'
+
+const title = '定时任务管理'
+const description = 'Cron 任务管理后台'
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="mx-auto max-w-6xl px-4 py-8">
+    <h1 class="mb-6 text-3xl font-bold">{title}</h1>
+    <CronManager client:load />
+  </div>
+</BaseLayout>

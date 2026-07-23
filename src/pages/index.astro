@@ -1,122 +1,94 @@
 ---
 export const prerender = true
-import { getCollection } from 'astro:content'
 import BaseLayout from '../layouts/BaseLayout.astro'
-import Icon from '../components/Icon.astro'
 import PostCard from '../components/PostCard.astro'
-import HomeSidebar from '../components/HomeSidebar.astro'
-import { listTags, countPostsByTag } from '../data/tag-helpers'
-import { calculateReadingTime } from '../lib/reading-time'
+import { getCollection } from 'astro:content'
 
-// 草稿不显示
-const allPosts = await getCollection('posts', ({ data }) => !data.draft)
-const posts = allPosts
+const services = [
+  {
+    name: '博客',
+    description: '文章、笔记与标签，技术实践与思考',
+    url: 'http://39.105.76.239',
+    icon: '📝',
+  },
+  {
+    name: 'Cron Admin',
+    description: '定时任务管理平台，统一调度与监控所有周期性任务',
+    url: 'http://39.105.76.239:8001',
+    icon: '⏱',
+  },
+  {
+    name: 'Notes',
+    description: '笔记页面，快速记录与查阅',
+    url: 'http://39.105.76.239/notes',
+    icon: '📓',
+  },
+]
+
+const allPosts = (await getCollection('posts', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 6)
-
-// 统计
-const totalWords = allPosts.reduce(
-  (sum, p) => sum + calculateReadingTime(p.body ?? '').chars,
-  0
-)
-const totalTags = listTags().filter((t) =>
-  allPosts.some((p) => p.data.tags?.includes(t.id))
-).length
-
-// 标签云
-const tagCounts = countPostsByTag(allPosts, (p) => p.data.tags)
-const tagsWithCount = listTags()
-  .map((t) => ({ ...t, count: tagCounts.get(t.id) ?? 0 }))
-  .filter((t) => t.count > 0)
-  .sort((a, b) => b.count - a.count)
+const recentPosts = allPosts.slice(0, 6)
 ---
 
-<BaseLayout title="首页">
-  <!-- 主体两列布局：xl 以上显示侧边栏 -->
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 xl:flex xl:gap-8 py-12">
-    <!-- 左侧固定侧边栏 -->
-    <HomeSidebar />
+<BaseLayout title="shhbase.cn">
+  <div class="min-h-[calc(100vh-12rem)] flex flex-col items-center px-4 py-12 sm:py-16 lg:py-20">
+    <!-- Hero -->
+    <header class="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 mb-4">
+        shhbase<span class="text-blue-600">.cn</span>
+      </h1>
+      <p class="text-lg sm:text-xl text-gray-500 leading-relaxed">
+        个人基础设施门户 — 聚合所有自托管服务，一站式导航与状态概览
+      </p>
+    </header>
 
-    <!-- 右侧主内容 -->
-    <div class="flex-1 min-w-0">
-      <!-- Hero -->
-      <section class="pt-4 xl:pt-8 pb-12 text-center xl:text-left">
-        <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
-          欢迎来到我的博客
-        </h1>
-        <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl xl:mx-0 mx-auto mb-8">
-          记录前端开发、技术学习与生活思考。这里是思考的存档站。
-        </p>
-        <div class="flex justify-center xl:justify-start gap-3 mb-8">
-          <a href="/posts" class="btn-primary">
-            开始阅读
-            <Icon name="arrow-right" size={16} class="ml-1" />
-          </a>
-          <a href="/tags" class="btn-outline">
-            浏览标签
-          </a>
-        </div>
+    <!-- Service Cards -->
+    <section class="w-full max-w-4xl mx-auto mb-16 sm:mb-20">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        {
+          services.map((svc) => (
+            <a
+              href={svc.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group relative bg-white border border-gray-200 rounded-2xl p-6 transition-all duration-200 hover:shadow-lg hover:border-blue-300 hover:-translate-y-0.5"
+            >
+              <div class="flex items-start justify-between mb-3">
+                <span class="text-2xl">{svc.icon}</span>
+                <svg class="h-4 w-4 text-gray-300 group-hover:text-blue-500 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-1.5 group-hover:text-blue-600 transition-colors duration-200">
+                {svc.name}
+              </h3>
+              <p class="text-sm text-gray-500 leading-relaxed">{svc.description}</p>
+            </a>
+          ))
+        }
+      </div>
+    </section>
 
-        <!-- 统计条 -->
-        <div class="flex flex-wrap justify-center xl:justify-start gap-x-6 gap-y-2 text-sm text-gray-500">
-          <a href="/posts" class="hover:text-brand-600 transition-colors flex items-center gap-1.5">
-            <Icon name="file-document-multiple" size={14} class="text-brand-600" />
-            <strong class="text-gray-900 dark:text-gray-100">{allPosts.length}</strong> 篇文章
-          </a>
-          <span class="flex items-center gap-1.5">
-            <Icon name="counter" size={14} class="text-brand-600" />
-            <strong class="text-gray-900 dark:text-gray-100">{totalWords.toLocaleString()}</strong> 字
-          </span>
-          <a href="/tags" class="hover:text-brand-600 transition-colors flex items-center gap-1.5">
-            <Icon name="tag-multiple" size={14} class="text-brand-600" />
-            <strong class="text-gray-900 dark:text-gray-100">{totalTags}</strong> 个标签
-          </a>
-          <a href="/archive" class="hover:text-brand-600 transition-colors flex items-center gap-1.5">
-            <Icon name="calendar" size={14} class="text-brand-600" />
-            归档
-          </a>
-        </div>
-      </section>
-
-      <!-- 标签云 -->
-      {tagsWithCount.length > 0 && (
-        <section class="pb-10">
-          <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-            标签云
-          </h2>
-          <div class="flex flex-wrap gap-2">
-            {tagsWithCount.slice(0, 20).map((tag) => (
-              <a
-                href={`/tags/${tag.id}`}
-                class="tag hover:opacity-80 transition-opacity"
-                style={`background-color: ${tag.color}20; color: ${tag.color};`}
-                title={tag.description}
-              >
-                {tag.name}
-                <span class="ml-1 text-[10px] opacity-70">{tag.count}</span>
-              </a>
-            ))}
+    <!-- Recent Posts -->
+    {
+      recentPosts.length > 0 && (
+        <section class="w-full max-w-4xl mx-auto">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-900">最新文章</h2>
+            <a href="/archive" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">
+              查看全部 →
+            </a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {recentPosts.map((post) => <PostCard post={post} />)}
           </div>
         </section>
-      )}
+      )
+    }
 
-      <!-- 最新文章：masonry 双列卡片墙 -->
-      <section class="pb-16">
-        <div class="flex items-end justify-between mb-6">
-          <h2 class="text-2xl font-bold">最新文章</h2>
-          <a href="/posts" class="text-sm text-brand-600 hover:underline flex items-center gap-1">
-            查看全部 <Icon name="arrow-right" size={14} />
-          </a>
-        </div>
-
-        {posts.length === 0 ? (
-          <p class="text-center text-gray-500 py-12">暂无文章</p>
-        ) : (
-          <div class="columns-1 sm:columns-2 gap-5 [&>*]:mb-5 [&>*]:break-inside-avoid">
-            {posts.map((post) => <PostCard post={post} />)}
-          </div>
-        )}
-      </section>
-    </div>
+    <!-- Footer -->
+    <footer class="mt-16 sm:mt-20 text-center text-sm text-gray-400">
+      <p>&copy; {new Date().getFullYear()} shhbase.cn — 个人基础设施门户</p>
+    </footer>
   </div>
 </BaseLayout>

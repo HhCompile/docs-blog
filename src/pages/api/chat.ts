@@ -2,7 +2,7 @@
  * AI 问答流式接口（向量检索版）
  *
  * POST /api/chat
- * Body: { messages: { role, content }[], useRag?: boolean }
+ * Body: { messages: { role, content }[], useRag?: boolean, collection?: 'posts' | 'notes' }
  *
  * 检索流程:
  *  1. 加载 dist/client/blog-embeddings.json（构建时生成）
@@ -33,6 +33,7 @@ interface Message {
 interface ChatRequest {
   messages: Message[]
   useRag?: boolean
+  collection?: 'posts' | 'notes'
   model?: string
   temperature?: number
 }
@@ -77,16 +78,18 @@ const MAX_TOTAL_CONTENT = 32000 // 全部消息累计上限
 
 let indexCache: EmbeddingIndex | null = null
 let indexLoadTime = 0
+let indexCacheKey = ''
 const INDEX_TTL_MS = 5 * 60 * 1000 // 5 分钟
 
-async function loadIndex(): Promise<EmbeddingIndex | null> {
+async function loadIndex(collection: 'posts' | 'notes' = 'posts'): Promise<EmbeddingIndex | null> {
   const now = Date.now()
-  if (indexCache && now - indexLoadTime < INDEX_TTL_MS) return indexCache
+  const cacheKey = `index_${collection}`
+  if (indexCache && indexCacheKey === cacheKey && now - indexLoadTime < INDEX_TTL_MS) return indexCache
 
-  // 优先从项目根目录找（开发模式），再 dist/client（生产模式）
+  const fileName = collection === 'notes' ? 'notes-embeddings.json' : 'blog-embeddings.json'
   const candidates = [
-    path.resolve(process.cwd(), 'dist/client/blog-embeddings.json'),
-    path.resolve(process.cwd(), 'blog-embeddings.json'),
+    path.resolve(process.cwd(), `dist/client/${fileName}`),
+    path.resolve(process.cwd(), fileName),
   ]
 
   for (const file of candidates) {
@@ -94,6 +97,7 @@ async function loadIndex(): Promise<EmbeddingIndex | null> {
       const raw = await fs.readFile(file, 'utf-8')
       const data = JSON.parse(raw) as EmbeddingIndex
       indexCache = data
+      indexCacheKey = cacheKey
       indexLoadTime = now
       return data
     } catch {
@@ -245,7 +249,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     return new Response('Invalid JSON', { status: 400 })
   }
 
-  const { messages = [], useRag = true, model, temperature = 0.7 } = body
+  const { messages = [], useRag = true, collection = 'posts', model, temperature = 0.7 } = body
   if (!Array.isArray(messages) || messages.length === 0) {
     return new Response('messages required', { status: 400 })
   }
@@ -287,7 +291,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   let retrievalMode: 'vector' | 'keyword' | 'none' = 'none'
   if (useRag) {
     try {
-      const hasIndex = await loadIndex()
+      const hasIndex = await loadIndex(collection)
       if (hasIndex) {
         const queryVec = await lmEmbed(lastUser.content)
         retrievalMode = queryVec ? 'vector' : 'keyword'

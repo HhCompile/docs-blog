@@ -1,0 +1,50 @@
+---
+export const prerender = true
+import { getCollection, render } from 'astro:content'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import PostAIAssistant from '../../components/PostAIAssistant'
+
+export async function getStaticPaths() {
+  const notes = await getCollection('notes')
+  return notes.map((note) => ({
+    params: { slug: note.id },
+    props: { note },
+  }))
+}
+
+const { note } = Astro.props
+const { Content } = await render(note)
+
+const title = note.data.title || note.id.split('/').pop()?.replace(/\.md$/, '') || '无标题'
+---
+
+<BaseLayout title={title}>
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <header class="mb-8">
+      <a href="/notes" class="text-sm text-brand-600 hover:underline mb-4 inline-block">
+        ← 返回笔记列表
+      </a>
+      <h1 class="text-3xl font-bold mt-2">{title}</h1>
+      <div class="flex gap-4 mt-3 text-sm text-gray-500">
+        {note.data.date && (
+          <time datetime={note.data.date.toISOString()}>
+            {note.data.date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </time>
+        )}
+        {note.data.tags && note.data.tags.length > 0 && (
+          <div class="flex flex-wrap gap-1">
+            {note.data.tags.map((tag) => (
+              <span class="px-2 py-0.5 text-xs rounded bg-gray-100 dark:bg-gray-800">{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    </header>
+
+    <div class="prose prose-lg dark:prose-invert max-w-none">
+      <Content />
+    </div>
+  </article>
+
+  <PostAIAssistant client:idle postTitle={title} collection="notes" />
+</BaseLayout>

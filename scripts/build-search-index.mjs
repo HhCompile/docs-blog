@@ -105,7 +105,7 @@ async function main() {
   console.log(`🔍 已索引 ${records.length} 篇文章`)
 
   // 持久化为 JSON
-  const data = save(db)
+  const data = JSON.stringify(save(db))
   await fs.mkdir(path.dirname(OUT), { recursive: true })
   await fs.writeFile(OUT, data)
   const sizeKB = (Buffer.byteLength(data) / 1024).toFixed(1)
