@@ -1,0 +1,112 @@
+---
+export const prerender = false
+import { PRESETS } from '../../../lib/theme-store'
+const title = '主题设置'
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · 后台</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f5f6f8; color: #1f2937; }
+      .wrap { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
+      header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+      h1 { font-size: 22px; }
+      .nav a { color: #6b7280; text-decoration: none; margin-left: 16px; font-size: 14px; }
+      .nav a:hover { color: #4f46e5; }
+      .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.06); margin-bottom: 20px; }
+      .card h2 { font-size: 17px; margin-bottom: 16px; }
+      .presets { display: flex; gap: 12px; flex-wrap: wrap; }
+      .preset { border: 2px solid #e5e7eb; border-radius: 10px; padding: 14px 20px; cursor: pointer; text-align: center; transition: border-color .15s; }
+      .preset.selected { border-color: #4f46e5; }
+      .preset .dot { width: 28px; height: 28px; border-radius: 50%; margin: 0 auto 8px; border: 1px solid #d1d5db; }
+      .preset .name { font-size: 13px; color: #374151; }
+      label { display: block; font-size: 13px; color: #6b7280; margin-bottom: 6px; font-weight: 600; }
+      textarea { width: 100%; min-height: 200px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-family: ui-monospace, Menlo, monospace; font-size: 13px; line-height: 1.6; resize: vertical; outline: none; }
+      .btn { padding: 10px 24px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; background: #4f46e5; color: #fff; }
+      .btn:disabled { opacity: .5; cursor: not-allowed; }
+      .hint { font-size: 12px; color: #9ca3af; margin-top: 8px; }
+      .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #111827; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 99; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>{title}</h1>
+        <div class="nav">
+          <a href="/admin/posts">文章管理</a>
+          <a href="/admin/errors">错误监控</a>
+          <a href="/">查看博客</a>
+          <a href="/admin/logout">退出</a>
+        </div>
+      </header>
+
+      <div class="card">
+        <h2>预设主题</h2>
+        <div class="presets" id="presets">
+          {PRESETS.map((p, i) => (
+            <div class="preset" data-id={p.id} onclick="selectPreset(this)">
+              <div class="dot" style={`background: ${p.id === 'default' ? '#fff' : p.id === 'dark' ? '#0f172a' : '#faf6f0'}`}></div>
+              <div class="name">{p.name}</div>
+            </div>
+          ))}
+        </div>
+        <p class="hint">主题保存后立即生效（无需重新构建）。自定义 CSS 需要发布后全站生效。</p>
+      </div>
+
+      <div class="card">
+        <h2>自定义 CSS</h2>
+        <label>追加到全站样式的自定义样式</label>
+        <textarea id="customCss" placeholder=":root { --accent: #e11d48; }&#10;.post-title { font-size: 2em; }"></textarea>
+        <p class="hint">此处可覆盖主题变量（--bg / --text / --accent 等）或添加任意选择器样式。</p>
+      </div>
+
+      <button class="btn" id="saveBtn">保存设置</button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      let settings = { preset: 'default', customCss: '' }
+      const $ = (sel: string): any => document.querySelector(sel)
+      const toast = (msg: string) => { const t = $('#toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2500) }
+
+      function selectPreset(el: HTMLElement) {
+        document.querySelectorAll('.preset').forEach(p => p.classList.remove('selected'))
+        el.classList.add('selected')
+        settings.preset = el.dataset.id || 'default'
+      }
+
+      async function load() {
+        const r = await fetch('/admin/api/settings')
+        if (!r.ok) return
+        settings = await r.json()
+        document.querySelectorAll('.preset').forEach(p => {
+          const el = p as HTMLElement
+          el.classList.toggle('selected', el.dataset.id === settings.preset)
+        })
+        $('#customCss').value = settings.customCss || ''
+      }
+
+      $('#saveBtn').onclick = async () => {
+        settings.customCss = $('#customCss').value
+        const btn = $('#saveBtn'); btn.disabled = true; btn.textContent = '保存中...'
+        try {
+          const r = await fetch('/admin/api/settings', {
+            method: 'PUT', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(settings),
+          })
+          if (r.ok) toast('设置已保存')
+          else toast('保存失败')
+        } catch { toast('保存请求失败') }
+        btn.disabled = false; btn.textContent = '保存设置'
+      }
+
+      load()
+    </script>
+  </body>
+</html>

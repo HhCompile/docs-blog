@@ -1,0 +1,162 @@
+---
+export const prerender = false
+// 鉴权由 src/middleware.ts 统一处理
+const title = '文章管理'
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · 后台</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f5f6f8; color: #1f2937; }
+      .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
+      header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+      h1 { font-size: 22px; }
+      .nav a { color: #6b7280; text-decoration: none; margin-left: 16px; font-size: 14px; }
+      .nav a:hover { color: #4f46e5; }
+      .toolbar { display: flex; gap: 12px; margin-bottom: 16px; }
+      .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; background: #4f46e5; color: #fff; }
+      .btn.secondary { background: #e5e7eb; color: #374151; }
+      .btn.danger { background: #ef4444; color: #fff; }
+      .btn:disabled { opacity: .5; cursor: not-allowed; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+      .card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); display: flex; flex-direction: column; gap: 8px; }
+      .card h3 { font-size: 16px; line-height: 1.4; }
+      .card .desc { color: #6b7280; font-size: 13px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+      .meta { display: flex; gap: 8px; align-items: center; font-size: 12px; color: #9ca3af; flex-wrap: wrap; }
+      .tag { background: #eef2ff; color: #4f46e5; padding: 2px 8px; border-radius: 999px; }
+      .draft-badge { background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+      .actions { display: flex; gap: 8px; margin-top: auto; padding-top: 8px; }
+      .actions button { font-size: 13px; padding: 6px 12px; }
+      .empty { text-align: center; color: #9ca3af; padding: 60px 0; }
+      .trash-section { margin-top: 40px; }
+      .trash-section h2 { font-size: 18px; margin-bottom: 12px; color: #6b7280; }
+      .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #111827; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 99; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>{title}</h1>
+        <div class="nav">
+          <a href="/admin/settings">主题设置</a>
+          <a href="/admin/errors">错误监控</a>
+          <a href="/">查看博客</a>
+          <a href="/admin/logout">退出</a>
+        </div>
+      </header>
+
+      <div class="toolbar">
+        <button class="btn" id="newBtn">新建文章</button>
+        <button class="btn secondary" id="publishBtn">发布全部更改</button>
+        <button class="btn secondary" id="refreshBtn">刷新</button>
+      </div>
+
+      <div id="list" class="grid"></div>
+
+      <div class="trash-section">
+        <h2>回收站</h2>
+        <div id="trash" class="grid"></div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      interface PostLite { slug: string; meta: { title?: string; description?: string; date?: string; draft?: boolean; tags?: string[] } }
+      const $ = (s: string): any => document.querySelector(s)
+      const toast = (msg: string) => { const t = $('#toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2500) }
+
+      function esc(s: unknown) {
+        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+      }
+
+      async function load() {
+        const [posts, trash] = await Promise.all([
+          fetch('/admin/api/posts').then(r => r.json()),
+          fetch('/admin/api/posts?trash=1').then(r => r.json()).catch(() => []),
+        ])
+        const list = $('#list')
+        if (!posts.length) list.innerHTML = '<div class="empty">还没有文章，点击「新建文章」开始</div>'
+        else list.innerHTML = posts.map((p: PostLite) => `
+          <div class="card">
+            <h3>${esc(p.meta.title)}</h3>
+            ${p.meta.description ? `<div class="desc">${esc(p.meta.description)}</div>` : ''}
+            <div class="meta">
+              <span>${esc(p.meta.date || '')}</span>
+              ${p.meta.draft ? '<span class="draft-badge">草稿</span>' : ''}
+              ${(p.meta.tags || []).slice(0,4).map((t: string) => `<span class="tag">${esc(t)}</span>`).join('')}
+            </div>
+            <div class="actions">
+              <button class="btn" onclick="location.href='/admin/posts/edit?slug=${encodeURIComponent(p.slug)}'">编辑</button>
+              <button class="btn danger" onclick="softDelete('${p.slug}')">删除</button>
+            </div>
+          </div>`).join('')
+
+        const trashEl = $('#trash')
+        if (!trash.length) trashEl.innerHTML = '<div class="empty" style="padding:20px 0">回收站为空</div>'
+        else trashEl.innerHTML = trash.map((p: PostLite) => `
+          <div class="card">
+            <h3>${esc(p.meta.title)}</h3>
+            <div class="meta"><span>${esc(p.meta.date || '')}</span></div>
+            <div class="actions">
+              <button class="btn secondary" onclick="restore('${p.slug}')">恢复</button>
+              <button class="btn danger" onclick="hardDelete('${p.slug}')">彻底删除</button>
+            </div>
+          </div>`).join('')
+      }
+
+      async function softDelete(slug: string) {
+        if (!confirm('确定将该文章移入回收站？')) return
+        const r = await fetch(`/admin/api/posts/${encodeURIComponent(slug)}`, { method: 'DELETE' })
+        if (r.ok) { toast('已移入回收站'); load() } else toast('删除失败')
+      }
+
+      async function restore(slug: string) {
+        const r = await fetch(`/admin/api/posts/${encodeURIComponent(slug)}/manage`, {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'restore' }),
+        })
+        if (r.ok) { toast('已恢复'); load() } else toast('恢复失败')
+      }
+
+      async function hardDelete(slug: string) {
+        if (!confirm('彻底删除后不可恢复，确定？')) return
+        const r = await fetch(`/admin/api/posts/${encodeURIComponent(slug)}/manage`, {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'delete' }),
+        })
+        if (r.ok) { toast('已彻底删除'); load() } else toast('删除失败')
+      }
+
+      $('#newBtn').onclick = async () => {
+        const title = prompt('输入文章标题：')
+        if (!title) return
+        const r = await fetch('/admin/api/posts', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ title }),
+        })
+        if (r.ok) { const p = await r.json(); location.href = `/admin/posts/edit?slug=${encodeURIComponent(p.slug)}` }
+        else toast('创建失败')
+      }
+
+      $('#publishBtn').onclick = async () => {
+        if (!confirm('将执行 git push + 重新构建 + 重启服务，期间站点可能短暂不可用。继续？')) return
+        const btn = $('#publishBtn'); btn.disabled = true; btn.textContent = '发布中...'
+        try {
+          const r = await fetch('/admin/api/posts/publish', { method: 'POST' })
+          const data = await r.json()
+          toast(data.message || (r.ok ? '发布成功' : '发布失败'))
+        } catch { toast('发布请求失败') }
+        btn.disabled = false; btn.textContent = '发布全部更改'
+      }
+
+      $('#refreshBtn').onclick = load
+      load()
+    </script>
+  </body>
+</html>

@@ -1,0 +1,196 @@
+---
+export const prerender = false
+// 鉴权由 src/middleware.ts 统一处理
+const title = '编辑文章'
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · 后台</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f5f6f8; color: #1f2937; }
+      .topbar { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 10px 20px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+      .topbar a { color: #6b7280; text-decoration: none; font-size: 14px; }
+      .topbar .spacer { flex: 1; }
+      .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; background: #4f46e5; color: #fff; }
+      .btn.secondary { background: #e5e7eb; color: #374151; }
+      .btn.ghost { background: transparent; color: #6b7280; }
+      .btn:disabled { opacity: .5; cursor: not-allowed; }
+      #titleInput { font-size: 18px; font-weight: 600; border: none; outline: none; padding: 6px 10px; border-radius: 8px; background: #f9fafb; width: 380px; }
+      .main { display: flex; height: calc(100vh - 53px); }
+      .pane { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+      .pane + .pane { border-left: 1px solid #e5e7eb; }
+      .pane-head { padding: 8px 16px; font-size: 13px; color: #6b7280; background: #fff; border-bottom: 1px solid #f0f0f0; display: flex; gap: 16px; align-items: center; }
+      .pane-head button { border: none; background: none; color: #6b7280; font-size: 13px; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+      .pane-head button.active { background: #eef2ff; color: #4f46e5; }
+      #editor { flex: 1; border: none; outline: none; padding: 20px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 14px; line-height: 1.7; resize: none; background: #fff; color: #1f2937; }
+      #preview { flex: 1; overflow: auto; padding: 20px 24px; background: #fff; }
+      #preview h1, #preview h2, #preview h3 { margin: 1em 0 .5em; }
+      #preview p { margin: .8em 0; line-height: 1.7; }
+      #preview code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: .9em; }
+      #preview pre { background: #1f2937; color: #f9fafb; padding: 16px; border-radius: 8px; overflow: auto; }
+      #preview pre code { background: none; padding: 0; color: inherit; }
+      #preview img { max-width: 100%; }
+      #preview blockquote { border-left: 4px solid #e5e7eb; padding-left: 16px; color: #6b7280; margin: 1em 0; }
+      #preview table { border-collapse: collapse; margin: 1em 0; }
+      #preview th, #preview td { border: 1px solid #e5e7eb; padding: 6px 12px; }
+      #frontmatter { flex: 1; overflow: auto; padding: 20px; }
+      .fm-row { margin-bottom: 14px; }
+      .fm-row label { display: block; font-size: 13px; color: #6b7280; margin-bottom: 6px; font-weight: 600; }
+      .fm-row input, .fm-row textarea { width: 100%; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; }
+      .fm-row textarea { min-height: 90px; resize: vertical; }
+      .fm-row .hint { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+      .hidden { display: none !important; }
+      .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #111827; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 99; }
+      .status { font-size: 12px; color: #9ca3af; }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <a href="/admin/posts">← 返回列表</a>
+      <input id="titleInput" placeholder="文章标题" />
+      <span class="status" id="status"></span>
+      <span class="spacer"></span>
+      <button class="btn secondary" id="draftBtn">存为草稿</button>
+      <button class="btn" id="saveBtn">保存</button>
+      <button class="btn" id="publishBtn">保存并发布</button>
+    </div>
+
+    <div class="main">
+      <div class="pane">
+        <div class="pane-head">
+          <button id="tabEdit" class="active">Markdown 源码</button>
+          <button id="tabMeta">Frontmatter</button>
+        </div>
+        <textarea id="editor" spellcheck="false"></textarea>
+        <div id="frontmatter" class="hidden">
+          <div class="fm-row"><label>Description（摘要）</label><textarea id="fmDescription" placeholder="文章摘要，用于列表卡片与 SEO"></textarea></div>
+          <div class="fm-row"><label>Tags（逗号分隔）</label><input id="fmTags" placeholder="astro, cms, 前端" /></div>
+          <div class="fm-row"><label>Date（日期）</label><input id="fmDate" type="date" /></div>
+          <div class="fm-row"><label>Cover（封面图 URL）</label><input id="fmCover" placeholder="https://..." /></div>
+          <div class="fm-row"><label>CoverAlt（封面描述）</label><input id="fmCoverAlt" /></div>
+        </div>
+      </div>
+      <div class="pane">
+        <div class="pane-head"><span>实时预览</span><button id="togglePreview" class="active">显示</button></div>
+        <div id="preview"></div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      interface PostMeta { title?: string; description?: string; date?: string; tags?: string[]; cover?: string; coverAlt?: string; updated?: string }
+      const $ = (s: string): any => document.querySelector(s)
+      const params = new URLSearchParams(location.search)
+      const slug = params.get('slug') || ''
+      let meta: PostMeta = { title: '', description: '', date: '', tags: [], cover: '', coverAlt: '' }
+      let dirty = false
+
+      const toast = (msg: string) => { const t = $('#toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2500) }
+      const mdEscape = (s: unknown) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+
+      // 前端极简 Markdown 渲染（重点预览用，正式渲染由站点构建完成）
+      function renderMarkdown(src: string) {
+        let html = src
+          .replace(/```([\w+-]*)\n([\s\S]*?)```/g, (_: string, lang: string, code: string) => `<pre><code class="language-${lang}">${mdEscape(code)}</code></pre>`)
+          .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+          .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+          .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/(^|\s)\*([^*\n]+)\*/g, '$1<em>$2</em>')
+          .replace(/`([^`\n]+)`/g, '<code>$1</code>')
+          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+          .replace(/^\s*[-*] (.+)$/gm, '<li>$1</li>')
+          .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+          .replace(/\n{2,}/g, '</p><p>')
+          .replace(/^(.+)$/gm, (m: string) => m.trim() ? m : '')
+        // 段落包裹
+        html = html.split('\n').filter((l: string) => l.trim()).map((l: string) => {
+          if (/^<(h\d|li|pre|blockquote|ul|ol)/.test(l)) return l
+          if (l.startsWith('<') && l.endsWith('>')) return l
+          return `<p>${l}</p>`
+        }).join('\n')
+        return html
+      }
+
+      function render() {
+        $('#preview').innerHTML = renderMarkdown($('#editor').value)
+      }
+
+      function syncFormFromMeta() {
+        $('#titleInput').value = meta.title || ''
+        $('#fmDescription').value = meta.description || ''
+        $('#fmTags').value = (meta.tags || []).join(', ')
+        $('#fmDate').value = meta.date || ''
+        $('#fmCover').value = meta.cover || ''
+        $('#fmCoverAlt').value = meta.coverAlt || ''
+      }
+
+      function collectMeta() {
+        meta.title = $('#titleInput').value.trim()
+        meta.description = $('#fmDescription').value.trim()
+        meta.tags = $('#fmTags').value.split(/[,，]/).map((t: string) => t.trim()).filter(Boolean)
+        meta.date = $('#fmDate').value
+        meta.cover = $('#fmCover').value.trim()
+        meta.coverAlt = $('#fmCoverAlt').value.trim()
+        meta.updated = new Date().toISOString().slice(0, 10)
+        if (!meta.title) meta.title = slug
+      }
+
+      async function load() {
+        const r = await fetch(`/admin/api/posts/${encodeURIComponent(slug)}`)
+        if (!r.ok) { toast('加载失败'); return }
+        const post = await r.json()
+        meta = { ...post.meta }
+        $('#editor').value = post.body
+        syncFormFromMeta()
+        render()
+      }
+
+      async function save() {
+        collectMeta()
+        const r = await fetch(`/admin/api/posts/${encodeURIComponent(slug)}`, {
+          method: 'PUT', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ meta, body: $('#editor').value }),
+        })
+        if (r.ok) { dirty = false; $('#status').textContent = '已保存'; toast('已保存'); return true }
+        toast('保存失败'); return false
+      }
+
+      $('#saveBtn').onclick = save
+      $('#draftBtn').onclick = save
+
+      $('#publishBtn').onclick = async () => {
+        if (await save()) {
+          if (!confirm('保存并发布到线上（git push + 构建 + 重启）？')) return
+          $('#publishBtn').disabled = true; $('#publishBtn').textContent = '发布中...'
+          try {
+            const r = await fetch('/admin/api/posts/publish', { method: 'POST' })
+            const data = await r.json()
+            toast(data.message || (r.ok ? '发布成功' : '发布失败'))
+          } catch { toast('发布请求失败') }
+          $('#publishBtn').disabled = false; $('#publishBtn').textContent = '保存并发布'
+        }
+      }
+
+      $('#editor').addEventListener('input', () => { dirty = true; $('#status').textContent = '未保存'; render() })
+      window.addEventListener('beforeunload', (e) => { if (dirty) { e.preventDefault(); e.returnValue = '' } })
+
+      $('#tabEdit').onclick = () => { $('#editor').classList.remove('hidden'); $('#frontmatter').classList.add('hidden'); $('#tabEdit').classList.add('active'); $('#tabMeta').classList.remove('active') }
+      $('#tabMeta').onclick = () => { $('#editor').classList.add('hidden'); $('#frontmatter').classList.remove('hidden'); $('#tabEdit').classList.remove('active'); $('#tabMeta').classList.add('active') }
+      $('#togglePreview').onclick = () => { $('#preview').classList.toggle('hidden'); $('#togglePreview').classList.toggle('active') }
+
+      ;['fmDescription','fmTags','fmDate','fmCover','fmCoverAlt'].forEach((id: string) => {
+        $('#' + id).addEventListener('input', () => { dirty = true; $('#status').textContent = '未保存' })
+      })
+      $('#titleInput').addEventListener('input', () => { dirty = true; $('#status').textContent = '未保存' })
+
+      load()
+    </script>
+  </body>
+</html>

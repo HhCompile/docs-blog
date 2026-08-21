@@ -13,7 +13,11 @@ import { logError } from './lib/error-store'
 import { getClientIp } from './lib/client-ip'
 
 // 公开的 admin 路径（不需要鉴权）
-const PUBLIC_ADMIN_PATHS = new Set([`${SESSION_PATH}/login`, `${SESSION_PATH}/logout`])
+const PUBLIC_ADMIN_PATHS = new Set([
+  `${SESSION_PATH}/login`,
+  `${SESSION_PATH}/login.post`,
+  `${SESSION_PATH}/logout`,
+])
 
 function isProtectedAdmin(pathname: string): boolean {
   if (!pathname.startsWith(SESSION_PATH)) return false

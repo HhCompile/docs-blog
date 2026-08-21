@@ -1,5 +1,10 @@
 ---
 import siteConfig from '../data/site.config.mjs'
+import { getThemeSettings, buildThemeCss } from '../lib/theme-store'
+
+// SSR 时读取主题设置，注入 CSS 变量（实时生效）
+const theme = await getThemeSettings()
+const themeCss = buildThemeCss(theme)
 
 export interface Props {
   title: string
@@ -89,3 +94,7 @@ const jsonLd = {
 <style is:global>
   @import '../styles/global.css';
 </style>
+
+<!-- 主题设置：构建时注入默认主题兜底（避免 FOUC），实时主题由 /api/theme.css 覆盖（后台修改即时生效） -->
+<style is:inline set:html={themeCss} />
+<link rel="stylesheet" href="/api/theme.css" />
